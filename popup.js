@@ -1,13 +1,23 @@
 class CoreController {
   constructor() {
     this.userInfoService = new UserInfoService();
+    this.urlButtonManager = new UrlButtonManager();
     this.commonHelper = new CommonHelper();
   }
   init = () => {
+    this.urlButtonManager.loadUrlButtons();
     this.userInfoService.renderUserInfo();
     this.addEventListener();
   };
   addEventListener = () => {
+    // 添加跳转按钮
+    const addMenuButton = document.getElementById("add-menu-button");
+    if (addMenuButton) {
+      addMenuButton.addEventListener(
+        "click",
+        this.urlButtonManager.addUrlButton
+      );
+    }
     // 设置页面开关按钮
     const settingsIcon = document.getElementById("settings-icon");
     const settingsPanel = document.getElementById("settings-panel");
@@ -224,6 +234,129 @@ class CommonHelper {
     } catch (error) {
       this.showMessage("复制失败，插件需要聚焦状态才能复制");
     }
+  };
+}
+class UrlButtonManager {
+  constructor() {
+    this.commonHelper = new CommonHelper();
+  }
+  /**
+   * 加载URL按钮菜单
+   */
+  loadUrlButtons = async () => {
+    const result = await this.commonHelper.getLocalStorage(
+      "userInfo",
+      "urlButtons"
+    );
+    const buttons = result || [];
+    const container = document.getElementById("url-buttons-container");
+    if (buttons.length === 0) {
+      container.innerHTML = "";
+      return;
+    }
+    container.innerHTML = buttons
+      .map((item, index) => {
+        const isDefault = item.default === true;
+        const deleteBadge = isDefault
+          ? ""
+          : `<span class="delete-badge" data-index="${index}"></span>`;
+        return `
+        <div class="url-button-item ${isDefault ? "default" : ""}">
+          <button class="url-btn btn-teal" data-url="${item.url}">${
+          item.btn
+        }</button>
+          ${deleteBadge}
+        </div>
+      `;
+      })
+      .join("");
+
+    container.querySelectorAll(".url-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        this.updateTabUrl(e.target.getAttribute("data-url"));
+      });
+    });
+
+    container.querySelectorAll(".delete-badge").forEach((badge) => {
+      badge.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const index = parseInt(e.target.getAttribute("data-index"));
+        this.deleteUrlButton(index);
+      });
+    });
+  };
+  /**
+   * 跳转URL
+   * @param {string} url - 要跳转的URL
+   */
+  updateTabUrl = async (url) => {
+    const tab = await this.commonHelper.getCurrentTab();
+    if (!tab) return;
+    await chrome.tabs.update(tab.id, { url: url });
+    this.commonHelper.closeWindow();
+  };
+  /**
+   * 删除按钮
+   * @param {number} index - 要删除的按钮索引
+   */
+  deleteUrlButton = async (index) => {
+    if (confirm("确定要删除这个按钮吗？")) {
+      const result = await this.commonHelper.getLocalStorage(
+        "userInfo",
+        "urlButtons"
+      );
+      const buttons = result || [];
+      buttons.splice(index, 1);
+      await this.commonHelper.updateLocalStorage(
+        "userInfo",
+        "urlButtons",
+        buttons
+      );
+      await this.loadUrlButtons();
+    }
+  };
+  /**
+   * 添加自定义跳转按钮
+   */
+  addUrlButton = async () => {
+    const btnNameInput = document.getElementById("btn-name-input");
+    const urlInput = document.getElementById("url-input");
+    const btnName = btnNameInput.value.trim();
+    const url = urlInput.value.trim();
+    if (!btnName) {
+      this.commonHelper.showMessage("请输入按钮名称");
+      return;
+    }
+    if (!url || !url.includes("http")) {
+      this.commonHelper.showMessage("网址不存在或不合法");
+      return;
+    }
+    const result = await this.commonHelper.getLocalStorage(
+      "userInfo",
+      "urlButtons"
+    );
+    const buttons = result || [];
+    if (buttons.length >= 23) {
+      this.commonHelper.showMessage("最多只能添加20个自定义按钮");
+      return;
+    }
+    const newButton = { btn: btnName, url: url, default: false };
+    if (buttons.some((item) => item.url === url)) {
+      this.commonHelper.showMessage("该网址已存在");
+      btnNameInput.value = "";
+      urlInput.value = "";
+      return;
+    }
+    buttons.push(newButton);
+    await this.commonHelper.updateLocalStorage(
+      "userInfo",
+      "urlButtons",
+      buttons
+    );
+    btnNameInput.value = "";
+    urlInput.value = "";
+    this.commonHelper.showMessage("添加成功","success");
+    await this.loadUrlButtons();
   };
 }
 class UserInfoService {
