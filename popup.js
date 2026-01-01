@@ -24,6 +24,48 @@ class CoreController {
         this.urlButtonManager.addUrlButton
       );
     }
+    // 监听 email 和 project 输入变化
+    const emailInput = document.getElementById("email-input");
+    const projectInput = document.getElementById("project-input");
+    if (emailInput) {
+      emailInput.addEventListener("input", () => {
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "email",
+          emailInput.value.trim()
+        );
+      });
+    }
+    if (projectInput) {
+      projectInput.addEventListener("input", () => {
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "project",
+          projectInput.value.trim()
+        );
+      });
+    }
+    // 监听gemini-key-input和prompt-input输入变化
+    const geminiKeyInput = document.getElementById("gemini-key-input");
+    const promptInput = document.getElementById("prompt-input");
+    if (geminiKeyInput) {
+      geminiKeyInput.addEventListener("input", () => {
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "geminiKey",
+          geminiKeyInput.value.trim()
+        );
+      });
+    }
+    if (promptInput) {
+      promptInput.addEventListener("input", () => {
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "prompt",
+          promptInput.value.trim()
+        );
+      });
+    }
     // 设置页面开关按钮
     const settingsIcon = document.getElementById("settings-icon");
     const settingsPanel = document.getElementById("settings-panel");
