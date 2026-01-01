@@ -533,6 +533,13 @@ class GitlabService {
       btn.setAttribute("data-original-text", btn.textContent);
     }
     this.setButtonLoading(buttonId, true);
+    // 校验邮箱和项目
+    const { email, project } = await this.userInfoService.getUserInfo();
+    if (!email || !project) {
+      this.commonHelper.showMessage("请先配置邮箱和项目");
+      this.setButtonLoading(buttonId, false);
+      return;
+    }
     // 获取并重置显示区域
     const outputDiv = document.getElementById("ai-report-output");
     const copyBtn = document.getElementById("copy-report-btn");
@@ -548,13 +555,6 @@ class GitlabService {
         "devops",
       ]);
       if (!isInWhiteList) {
-        this.setButtonLoading(buttonId, false);
-        return;
-      }
-
-      const { email, project } = await this.userInfoService.getUserInfo();
-      if (!email || !project) {
-        this.commonHelper.showMessage("请先配置邮箱和项目");
         this.setButtonLoading(buttonId, false);
         return;
       }
@@ -614,7 +614,10 @@ class GitlabService {
             },
             (fullText) => {
               // 完成回调
-              this.commonHelper.showMessage("日报生成完成，点击复制", "success");
+              this.commonHelper.showMessage(
+                "日报生成完成，点击复制",
+                "success"
+              );
               this.setButtonLoading(buttonId, false);
               // 显示复制按钮
               if (copyBtn) {
