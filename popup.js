@@ -440,6 +440,7 @@ class GitlabService {
   constructor() {
     this.commonHelper = new CommonHelper();
     this.userInfoService = new UserInfoService();
+    this.geminiService = new GeminiService();
   }
   /**
    * 自动填写标题并创建Pull Request
@@ -582,8 +583,23 @@ class GitlabService {
           this.setButtonLoading(buttonId, false);
           return;
         }
-        await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
-        this.commonHelper.showMessage("获取日报成功，已复制提交记录到剪切板", "success");
+        const { geminiKey, prompt } = await this.userInfoService.getUserInfo();
+        if(geminiKey && prompt) {
+          await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
+          this.commonHelper.showMessage(
+            "获取日报成功，开始AI生成日报",
+            "success"
+          );
+          const report = await this.geminiService.generateReport(geminiKey, JSON.stringify(commitList), prompt);
+          await this.commonHelper.copyToClipboard(report);
+          this.commonHelper.showMessage("AI日报已生成并复制到剪切板", "success");
+        }else {
+          await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
+          this.commonHelper.showMessage(
+            "未配置Gemini API Key或提示词，已复制提交记录到剪切板",
+            "success"
+          );
+        }
         this.setButtonLoading(buttonId, false);
         this.commonHelper.closeWindow();
       } else {
@@ -672,6 +688,55 @@ class UserInfoService {
     const result = await this.commonHelper.getLocalStorage("userInfo");
     const { email, project, geminiKey, prompt } = result || {};
     return { email, project, geminiKey, prompt };
+  };
+}
+class GeminiService {
+  constructor() {
+    this.model = "gemini-2.5-flash";
+    this.baseUrl = `https://gemini-api.getan.edu.kg/v1beta/models/${this.model}`;
+  }
+  /**
+   * 调用 Gemini 生成周报，普通方式
+   * @param {string} apiKey - Gemini API Key
+   * @param {Array} commits - 提交记录列表
+   * @returns {Promise<string>} - AI 生成的文本
+   */
+  generateReport = async (apiKey, commits, prompt) => {
+    // 构建 Prompt
+    const finalPrompt = `${prompt}\n${commits}`;
+    const url = `${this.baseUrl}:generateContent`;
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: finalPrompt,
+                },
+              ],
+            },
+          ],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.error) {
+        throw new Error(data.error.message);
+      }
+
+      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      return generatedText || "AI 未返回有效内容";
+    } catch (error) {
+      console.error("Gemini API Error:", error);
+      throw new Error("AI 生成失败: " + error.message);
+    }
   };
 }
 const coreController = new CoreController();

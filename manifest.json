@@ -11,7 +11,8 @@
   ],
   "host_permissions": [
     "https://devops.cscec.com/*",
-    "https://dcs-uat-gray.cscec.com/*"
+    "https://dcs-uat-gray.cscec.com/*",
+    "https://gemini-api.getan.edu.kg/*"
   ],
   "background": {
     "service_worker": "background.js"
