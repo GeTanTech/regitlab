@@ -533,6 +533,16 @@ class GitlabService {
       btn.setAttribute("data-original-text", btn.textContent);
     }
     this.setButtonLoading(buttonId, true);
+    // 获取并重置显示区域
+    const outputDiv = document.getElementById("ai-report-output");
+    const copyBtn = document.getElementById("copy-report-btn");
+    const outputGroup = document.getElementById("ai-report-output-group");
+    if (outputGroup) outputGroup.style.display = "block";
+    if (outputDiv) {
+      outputDiv.textContent = "正在获取提交记录...";
+      outputDiv.style.color = "#333";
+    }
+    if (copyBtn) copyBtn.style.display = "none";
     try {
       const { isInWhiteList } = await this.commonHelper.validateDomain([
         "devops",
@@ -580,28 +590,62 @@ class GitlabService {
           });
         if (commitList.length === 0) {
           this.commonHelper.showMessage("该时间段内没有找到提交记录");
+          if (outputDiv) outputDiv.textContent = "该时间段内没有找到提交记录。";
           this.setButtonLoading(buttonId, false);
           return;
         }
         const { geminiKey, prompt } = await this.userInfoService.getUserInfo();
-        if(geminiKey && prompt) {
-          await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
-          this.commonHelper.showMessage(
-            "获取日报成功，开始AI生成日报",
-            "success"
+        if (geminiKey && prompt) {
+          if (outputDiv)
+            outputDiv.textContent =
+              "成功获取提交记录...\n正在生成 AI 日报...\n";
+          // 调用流式生成接口
+          await this.geminiService.generateReportStream(
+            geminiKey,
+            JSON.stringify(commitList),
+            prompt,
+            (currentText) => {
+              // 实时更新回调
+              if (outputDiv) {
+                outputDiv.textContent = currentText;
+                // 自动滚动到底部
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+              }
+            },
+            (fullText) => {
+              // 完成回调
+              this.commonHelper.showMessage("日报生成完成，点击复制", "success");
+              this.setButtonLoading(buttonId, false);
+              // 显示复制按钮
+              if (copyBtn) {
+                copyBtn.style.display = "block";
+                copyBtn.onclick = () => {
+                  this.commonHelper.copyToClipboard(fullText);
+                  this.commonHelper.showMessage("已复制到剪切板", "success");
+                  this.commonHelper.closeWindow();
+                };
+              }
+            },
+            (errorMessage) => {
+              // 错误回调
+              if (outputDiv) {
+                outputDiv.textContent += `\n\n[错误]: ${errorMessage}`;
+                outputDiv.style.color = "red";
+              }
+              this.setButtonLoading(buttonId, false);
+            }
           );
-          const report = await this.geminiService.generateReport(geminiKey, JSON.stringify(commitList), prompt);
-          await this.commonHelper.copyToClipboard(report);
-          this.commonHelper.showMessage("AI日报已生成并复制到剪切板", "success");
-        }else {
+        } else {
           await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
+          if (outputDiv)
+            outputDiv.textContent =
+              "未配置 Gemini API Key，已仅获取原始 Commit 记录并复制到剪切板。";
           this.commonHelper.showMessage(
             "未配置Gemini API Key或提示词，已复制提交记录到剪切板",
             "success"
           );
         }
         this.setButtonLoading(buttonId, false);
-        this.commonHelper.closeWindow();
       } else {
         this.commonHelper.showMessage(
           response?.message || "获取Commit失败，刷新页面后重试"
@@ -736,6 +780,86 @@ class GeminiService {
     } catch (error) {
       console.error("Gemini API Error:", error);
       throw new Error("AI 生成失败: " + error.message);
+    }
+  };
+  /**
+   * 调用 Gemini 生成周报 (流式)
+   * @param {string} apiKey - Gemini API Key
+   * @param {string} commits - 提交记录
+   * @param {string} prompt - 提示词
+   * @param {function} onUpdate - 回调函数，每收到一段文字调用一次 (text) => void
+   * @param {function} onComplete - 完成时的回调 (fullText) => void
+   * @param {function} onError - 出错时的回调 (error) => void
+   */
+  generateReportStream = async (
+    apiKey,
+    commits,
+    prompt,
+    onUpdate,
+    onComplete,
+    onError
+  ) => {
+    const finalPrompt = `${prompt}\n${commits}`;
+    // 使用 streamGenerateContent 接口，并开启 SSE 模式 (alt=sse)
+    const url = `${this.baseUrl}:streamGenerateContent?alt=sse`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: finalPrompt }] }],
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(
+          `API 请求失败: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+
+        // 解析 SSE 数据
+        const lines = buffer.split("\n");
+        // 保留最后一个可能不完整的行
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            const jsonStr = line.slice(6).trim();
+            if (jsonStr === "[DONE]") continue; // 结束标记
+
+            try {
+              const data = JSON.parse(jsonStr);
+              const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
+              if (textChunk) {
+                fullText += textChunk;
+                if (onUpdate) onUpdate(fullText); // 实时更新 UI
+              }
+            } catch (e) {
+              console.warn("解析 JSON 失败", e);
+            }
+          }
+        }
+      }
+      if (onComplete) onComplete(fullText);
+    } catch (error) {
+      console.error("Gemini Stream Error:", error);
+      if (onError) onError(error.message);
     }
   };
 }
