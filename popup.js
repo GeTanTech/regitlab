@@ -95,7 +95,7 @@ class CommonHelper {
   validateDomain = async (types) => {
     const tab = await this.getCurrentTab();
     try {
-      const url = tab.url;
+      const url = tab.url || '';
       for (const type of types) {
         if (this.whiteList[type].some((item) => url.includes(item))) {
           return {
