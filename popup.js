@@ -17,6 +17,26 @@ class CoreController {
     if (getUserBtn) {
       getUserBtn.addEventListener("click", this.dcsService.fetchUserInfo);
     }
+    // 获取上周日报按钮
+    const getLastWeekCommitListBtn = document.getElementById(
+      "get-last-week-commit-list-btn"
+    );
+    if (getLastWeekCommitListBtn) {
+      getLastWeekCommitListBtn.addEventListener(
+        "click",
+        this.gitlabService.fetchLastWeekCommits
+      );
+    }
+    // 获取本周日报按钮
+    const getCurrentWeekCommitListBtn = document.getElementById(
+      "get-current-week-commit-list-btn"
+    );
+    if (getCurrentWeekCommitListBtn) {
+      getCurrentWeekCommitListBtn.addEventListener(
+        "click",
+        this.gitlabService.fetchCurrentWeekCommits
+      );
+    }
     // 添加跳转按钮
     const addMenuButton = document.getElementById("add-menu-button");
     if (addMenuButton) {
@@ -470,6 +490,111 @@ class GitlabService {
       }
     } catch (error) {
       this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+    }
+  };
+  /**
+   * 获取上周的commit列表
+   */
+  fetchLastWeekCommits = async () => {
+    const { firstDay, lastDay } = this.commonHelper.getPreviousWeekRange();
+    this.fetchCommits(firstDay, lastDay, "get-last-week-commit-list-btn");
+  };
+  /**
+   * 获取本周的commit列表
+   */
+  fetchCurrentWeekCommits = async () => {
+    const { firstDay, lastDay } = this.commonHelper.getCurrentWeekRange();
+    this.fetchCommits(firstDay, lastDay, "get-current-week-commit-list-btn");
+  };
+  /**
+   * 设置按钮加载状态
+   */
+  setButtonLoading = (buttonId, loading) => {
+    const btn = document.getElementById(buttonId);
+    if (btn) {
+      btn.disabled = loading;
+      if (loading) {
+        btn.textContent = "加载中...";
+      } else {
+        const originalText = btn.getAttribute("data-original-text");
+        if (originalText) {
+          btn.textContent = originalText;
+        }
+      }
+    }
+  };
+  /**
+   * 获取指定日期范围的commit列表
+   */
+  fetchCommits = async (firstDay, lastDay, buttonId) => {
+    const btn = document.getElementById(buttonId);
+    if (btn && !btn.getAttribute("data-original-text")) {
+      btn.setAttribute("data-original-text", btn.textContent);
+    }
+    this.setButtonLoading(buttonId, true);
+    try {
+      const { isInWhiteList } = await this.commonHelper.validateDomain([
+        "devops",
+      ]);
+      if (!isInWhiteList) {
+        this.setButtonLoading(buttonId, false);
+        return;
+      }
+
+      const { email, project } = await this.userInfoService.getUserInfo();
+      if (!email || !project) {
+        this.commonHelper.showMessage("请先配置邮箱和项目");
+        this.setButtonLoading(buttonId, false);
+        return;
+      }
+      const url = `https://devops.cscec.com/api/code/api/osc/${project}/-/commits?commit_id=&keyword=&committer_name=${email}&author_name=&start_date=${firstDay}&end_date=${lastDay}&count=0&ref=heads%2Fuat&path=&page=1&per_page=200&scope=include_refs`;
+
+      const response = await new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage(
+          {
+            action: "getCommitList",
+            data: { url },
+          },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              reject(new Error(chrome.runtime.lastError.message));
+              return;
+            }
+            resolve(response);
+          }
+        );
+      });
+
+      if (response && response.code === 0) {
+        const lists = response?.data || [];
+        const commitList = lists
+          .filter((item) => !item.merge_commit)
+          .map((item) => {
+            return {
+              title: item.title || item.message,
+              created_at: new Date(
+                item.created_at || item.updated_at
+              ).toLocaleDateString(),
+            };
+          });
+        if (commitList.length === 0) {
+          this.commonHelper.showMessage("该时间段内没有找到提交记录");
+          this.setButtonLoading(buttonId, false);
+          return;
+        }
+        await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
+        this.commonHelper.showMessage("获取日报成功，已复制提交记录到剪切板", "success");
+        this.setButtonLoading(buttonId, false);
+        this.commonHelper.closeWindow();
+      } else {
+        this.commonHelper.showMessage(
+          response?.message || "获取Commit失败，刷新页面后重试"
+        );
+        this.setButtonLoading(buttonId, false);
+      }
+    } catch (error) {
+      this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+      this.setButtonLoading(buttonId, false);
     }
   };
 }

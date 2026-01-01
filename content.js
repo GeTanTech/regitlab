@@ -62,6 +62,9 @@ const handle = {
       { sendResponse }
     );
   },
+  getCommitList: (request, _, sendResponse) => {
+    utilsService.customGitlabFetch(request.data.url, utilsService.sendSuccessResponse, { sendResponse });
+  },
 };
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
