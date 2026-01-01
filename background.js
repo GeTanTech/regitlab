@@ -123,12 +123,37 @@ async function initLocalStorage() {
     },
   });
 }
+async function injectContentScriptsToAllTabs() {
+  const windows = await chrome.windows.getAll({ populate: true });
+  for (const window of windows) {
+    if (window.tabs) {
+      for (const tab of window.tabs) {
+        if (
+          tab.url &&
+          (tab.url.includes("devops.cscec.com") ||
+            tab.url.includes("dcs-uat-gray.cscec.com"))
+        ) {
+          try {
+            await chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ["content.js"],
+            });
+          } catch (e) {
+            // 忽略注入失败
+          }
+        }
+      }
+    }
+  }
+}
+
 // 外层执行：覆盖浏览器重启、插件唤醒等场景
 setupReplacementRules();
 chrome.runtime.onInstalled.addListener(async (details) => {
   // 判断触发原因：install（首次安装）、update（插件更新），避免重复执行
   if (details.reason === "install" || details.reason === "update") {
     await setupReplacementRules();
+    await injectContentScriptsToAllTabs();
     await initLocalStorage();
   }
 });
