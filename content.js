@@ -4,10 +4,10 @@ class UtilsService {
     this.SUCCESS_MESSAGE = "请求成功";
   }
   sendErrorResponse = (args) => {
-    args.sendResponse({ code: 500, message: this.ERROR_MESSAGE, data: null });
+    args.sendResponse({ code: 500, message: args.message || this.ERROR_MESSAGE, data: null });
   };
   sendSuccessResponse = (args, result = null) => {
-    args.sendResponse({ code: 0, message: this.SUCCESS_MESSAGE, data: result });
+    args.sendResponse({ code: 0, message: args.message || this.SUCCESS_MESSAGE, data: result });
   };
   customGitlabFetch = async (url, callback, args, method = "GET") => {
     try {
@@ -46,6 +46,9 @@ class UtilsService {
     const result = resp?.data ? resp?.data : resp || null;
     return result;
   };
+  delay = (ms = 1500) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  };
   createPullRequest = async (title) => {
     // 自动填写标题
     const input = document.querySelector(
@@ -82,6 +85,44 @@ const handle = {
       },
       { sendResponse }
     );
+  },
+  autoAcceptPullRequest: async (request, _, sendResponse) => {
+    // 接受
+    const acceptBtn = document.querySelector(
+      "#spa-mount-point > div > div.code-app-layout > div > div > div:nth-child(1) > div.ent-resource-main.has-menu > div > div > div.pull-detail__info-wrapper > div.pull-detail__info > div.pull-detail__info__tools__actions > div.pull_detail_action_top > div > span:nth-child(1) > span > button"
+    );
+    if (acceptBtn){
+      acceptBtn.click();
+    } else {
+      utilsService.sendErrorResponse({ sendResponse, message: "接受按钮不存在" });
+      return true;
+    };
+    await utilsService.delay();
+    // merge
+    const mergeBtn = Array.from(document.querySelectorAll(".merge_list")).find(
+      el => {
+        const h4 = el.querySelector("h4");
+        return h4 && h4.textContent.trim() === "Merge";
+      }
+    );
+    if (mergeBtn) {
+      mergeBtn.click();
+    } else {
+      utilsService.sendErrorResponse({ sendResponse, message: "合并按钮不存在" });
+      return true;
+    }
+    await utilsService.delay();
+    // 确定
+    const confirmBtn = document.querySelector(
+      "body > div.el-dialog__wrapper > div > div.el-dialog__footer > span > button.el-button.el-button--osc.el-button--medium"
+    );
+    if (confirmBtn) {
+      confirmBtn.click();
+    } else {
+      utilsService.sendErrorResponse({ sendResponse, message: "确定按钮不存在" });
+      return true;
+    }
+    utilsService.sendSuccessResponse({ sendResponse, message: "接受Pull Request成功" });
   },
   getCommitList: (request, _, sendResponse) => {
     utilsService.customGitlabFetch(

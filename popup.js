@@ -97,6 +97,14 @@ class CoreController {
         this.gitlabService.autoCreatePullRequest
       );
     }
+    // 接受Pull Request按钮
+    const autoAcceptPullRequestBtn = document.getElementById("auto-accept-pull-request-btn");
+    if (autoAcceptPullRequestBtn) {
+      autoAcceptPullRequestBtn.addEventListener(
+        "click",
+        this.gitlabService.autoAcceptPullRequest
+      );
+    }
     // 清空我的分支按钮
     const clearMyBranchesBtn = document.getElementById("clear-my-branches-btn");
     if (clearMyBranchesBtn) {
@@ -494,6 +502,16 @@ class CommonHelper {
       }
     }
   };
+  /**
+   * 更新当前页面跳转到URL
+   * @param {string} url - 要跳转的URL
+   */
+  updateCurrentTabUrl = async (url) => {
+    const tab = await this.getCurrentTab();
+    if (!tab) return;
+    await chrome.tabs.update(tab.id, { url: url });
+    this.closeWindow();
+  };
 }
 class UrlButtonManager {
   constructor() {
@@ -532,7 +550,7 @@ class UrlButtonManager {
 
     container.querySelectorAll(".url-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
-        this.updateTabUrl(e.target.getAttribute("data-url"));
+        this.commonHelper.updateCurrentTabUrl(e.target.getAttribute("data-url"));
       });
     });
 
@@ -543,16 +561,6 @@ class UrlButtonManager {
         this.deleteUrlButton(index);
       });
     });
-  };
-  /**
-   * 跳转URL
-   * @param {string} url - 要跳转的URL
-   */
-  updateTabUrl = async (url) => {
-    const tab = await this.commonHelper.getCurrentTab();
-    if (!tab) return;
-    await chrome.tabs.update(tab.id, { url: url });
-    this.commonHelper.closeWindow();
   };
   /**
    * 删除按钮
@@ -748,6 +756,30 @@ class GitlabService {
       }
     } catch (error) {
       this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+    }
+  };
+  /**
+   * 自动接受Pull Request
+   */
+  autoAcceptPullRequest = async () => {
+    const { isInWhiteList, tab } = await this.commonHelper.validateDomain([
+      "devops",
+    ]);
+    if (!isInWhiteList) return;
+    const result = await chrome.runtime.sendMessage({ action: "autoAcceptPullRequest" });
+    if (result && result.code === 0) {
+      this.commonHelper.showMessage("接受Pull Request成功", "success");
+      // 更新当前页面跳转到我的分支页面
+      setTimeout(async () => {
+        const { project } = await this.userInfoService.getUserInfo();
+        if (!project) {
+          this.commonHelper.showMessage("请配置项目");
+          return;
+        }
+        await this.commonHelper.updateCurrentTabUrl(`https://devops.cscec.com/osc/_source/osc/${project}/-/cherry_pick/new`);
+      }, 1000);
+    } else {
+      this.commonHelper.showMessage(result?.message || "接受Pull Request失败");
     }
   };
   /**
