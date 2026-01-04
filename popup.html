@@ -594,6 +594,7 @@
   </head>
   <body>
     <div id="message-container" class="message-container"></div>
+    <a id="editor-link" style="display: none"></a>
     <div class="popup-container">
       <div class="header">
         <div class="top-bar">
@@ -729,6 +730,32 @@
               class="input-field"
             />
             <div class="helper-text">请填写 Group/Project 格式的完整路径</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">📝 编辑器配置</span>
+          </div>
+          <div class="form-group">
+            <label>编辑器类型</label>
+            <input
+              type="text"
+              id="editor-type-input"
+              placeholder="例如: cursor, vscode"
+              class="input-field"
+            />
+          </div>
+          <div class="form-group">
+            <label>开发项目路径</label>
+            <input
+              type="text"
+              id="dev-project-path-input"
+              placeholder="绝对路径: Mac移除前面斜杠，Win不做处理"
+              class="input-field"
+            />
+            <div class="helper-text">Win格式:【D:/project/common-react/src/app.tsx:454:0】</div>
+            <div class="helper-text">Mac格式:【Users/username/project/common-react/src/app.tsx:454:0】</div>
           </div>
         </div>
 

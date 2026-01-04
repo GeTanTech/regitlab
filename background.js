@@ -104,22 +104,26 @@ async function initLocalStorage() {
     },
   };
   const defaultPrompt =
-    "根据我的gitlab提交记录生成简短日报；1、按“[日期]：内容”格式输出，每天控制在50字以内；2、若某天内容过少，可从前/后一天合理挪用部分任务，确保每天工作量饱满；3、如内容包含“生产”，“开发”相关任务，需重点提及并优先保留；4、日志内容稍微具体点，不要过于笼统，避免假大空；内容如下：";
+    "根据我的gitlab提交记录生成简短日报；1、按“[日期]：内容”格式输出，每天控制在50字以内；2、如内容包含“生产”，“开发”相关任务，需重点提及并优先保留；3、日志内容稍微具体点，不要过于笼统，避免假大空；内容如下：";
   const defaultProject = "cip-economic/cost-react-1";
+  const defaultEditorType = "vscode";
   const result = await chrome.storage.local.get("userInfo");
-  const { urlButtons = [], prompt = "", project = "" } = result.userInfo || {};
+  const { urlButtons = [], prompt = "", project = "", editorType = ""} = result.userInfo || {};
   let _prompt = "";
   let _project = "";
   let _urlButtons = [];
+  let _editorType = "";
   if (!prompt) _prompt = defaultPrompt;
   if (!project) _project = defaultProject;
   if (urlButtons.length === 0) _urlButtons = Object.values(config);
+  if (!editorType) _editorType = defaultEditorType;
   await chrome.storage.local.set({
     userInfo: {
       ...(result.userInfo || {}),
       ...(_prompt ? { prompt: _prompt } : {}),
       ...(_project ? { project: _project } : {}),
       ...(_urlButtons.length > 0 ? { urlButtons: _urlButtons } : {}),
+      ...(_editorType ? { editorType: _editorType } : {}),
     },
   });
 }

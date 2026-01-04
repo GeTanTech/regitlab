@@ -127,6 +127,41 @@ class CoreController {
         handler,
       });
     }
+    // 监听编辑器配置输入变化
+    const editorTypeInput = document.getElementById("editor-type-input");
+    const devProjectPathInput = document.getElementById(
+      "dev-project-path-input"
+    );
+    if (editorTypeInput) {
+      const handler = () => {
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "editorType",
+          editorTypeInput.value.trim()
+        );
+      };
+      editorTypeInput.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: editorTypeInput,
+        event: "input",
+        handler,
+      });
+    }
+    if (devProjectPathInput) {
+      const handler = () => {
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "devProjectPath",
+          devProjectPathInput.value.trim()
+        );
+      };
+      devProjectPathInput.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: devProjectPathInput,
+        event: "input",
+        handler,
+      });
+    }
     // 设置页面开关按钮
     const settingsIcon = document.getElementById("settings-icon");
     const settingsPanel = document.getElementById("settings-panel");
@@ -259,7 +294,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["cost", "gray", "run-pipeline-btn-cost-gray"]);
+      const handler = () =>
+        wrappedHandler(["cost", "gray", "run-pipeline-btn-cost-gray"]);
       costGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: costGrayBtn,
@@ -275,7 +311,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["cost", "uat", "run-pipeline-btn-cost-uat"]);
+      const handler = () =>
+        wrappedHandler(["cost", "uat", "run-pipeline-btn-cost-uat"]);
       costUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({ element: costUatBtn, event: "click", handler });
     }
@@ -289,7 +326,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["public", "gray", "run-pipeline-btn-public-gray"]);
+      const handler = () =>
+        wrappedHandler(["public", "gray", "run-pipeline-btn-public-gray"]);
       publicGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: publicGrayBtn,
@@ -305,7 +343,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["public", "uat", "run-pipeline-btn-public-uat"]);
+      const handler = () =>
+        wrappedHandler(["public", "uat", "run-pipeline-btn-public-uat"]);
       publicUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: publicUatBtn,
@@ -323,7 +362,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["target", "gray", "run-pipeline-btn-target-gray"]);
+      const handler = () =>
+        wrappedHandler(["target", "gray", "run-pipeline-btn-target-gray"]);
       targetGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: targetGrayBtn,
@@ -339,7 +379,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["target", "uat", "run-pipeline-btn-target-uat"]);
+      const handler = () =>
+        wrappedHandler(["target", "uat", "run-pipeline-btn-target-uat"]);
       targetUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: targetUatBtn,
@@ -357,7 +398,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["income", "gray", "run-pipeline-btn-income-gray"]);
+      const handler = () =>
+        wrappedHandler(["income", "gray", "run-pipeline-btn-income-gray"]);
       incomeGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: incomeGrayBtn,
@@ -373,7 +415,8 @@ class CoreController {
         ["devops"],
         []
       );
-      const handler = () => wrappedHandler(["income", "uat", "run-pipeline-btn-income-uat"]);
+      const handler = () =>
+        wrappedHandler(["income", "uat", "run-pipeline-btn-income-uat"]);
       incomeUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: incomeUatBtn,
@@ -1042,6 +1085,7 @@ class PipelineService {
 class DcsService {
   constructor() {
     this.commonHelper = new CommonHelper();
+    this.userInfoService = new UserInfoService();
   }
   /**
    * 获取用户信息
@@ -1065,6 +1109,17 @@ class DcsService {
       const jsonStr = JSON.stringify(userInfo, null, 2);
       await this.commonHelper.copyToClipboard(jsonStr);
       this.commonHelper.showMessage("用户信息已复制到剪切板", "success");
+      setTimeout(async () => {
+        const { editorType, devProjectPath } =
+          await this.userInfoService.getUserInfo();
+        if (editorType && devProjectPath) {
+          const link = document.getElementById("editor-link");
+          if (link) {
+            link.href = `${editorType}://file/${devProjectPath}`;
+            link.click();
+          }
+        }
+      }, 1000);
       this.commonHelper.closeWindow();
     } else {
       this.commonHelper.showMessage("$udp对象不存在无法获取用户信息");
@@ -1079,11 +1134,16 @@ class UserInfoService {
    * 渲染用户信息
    */
   renderUserInfo = async () => {
-    const { email, project, geminiKey, prompt } = await this.getUserInfo();
+    const { email, project, geminiKey, prompt, editorType, devProjectPath } =
+      await this.getUserInfo();
     const emailInput = document.getElementById("email-input");
     const projectInput = document.getElementById("project-input");
     const geminiKeyInput = document.getElementById("gemini-key-input");
     const promptInput = document.getElementById("prompt-input");
+    const editorTypeInput = document.getElementById("editor-type-input");
+    const devProjectPathInput = document.getElementById(
+      "dev-project-path-input"
+    );
     if (emailInput && email) {
       emailInput.value = email;
     }
@@ -1096,6 +1156,12 @@ class UserInfoService {
     if (promptInput && prompt) {
       promptInput.value = prompt;
     }
+    if (editorTypeInput && editorType) {
+      editorTypeInput.value = editorType;
+    }
+    if (devProjectPathInput && devProjectPath) {
+      devProjectPathInput.value = devProjectPath;
+    }
   };
   /**
    * 获取用户信息
@@ -1103,8 +1169,9 @@ class UserInfoService {
    */
   getUserInfo = async () => {
     const result = await this.commonHelper.getLocalStorage("userInfo");
-    const { email, project, geminiKey, prompt } = result || {};
-    return { email, project, geminiKey, prompt };
+    const { email, project, geminiKey, prompt, editorType, devProjectPath } =
+      result || {};
+    return { email, project, geminiKey, prompt, editorType, devProjectPath };
   };
 }
 class GeminiService {
