@@ -13,135 +13,253 @@ class CoreController {
     this.userInfoService.renderUserInfo();
     this.addEventListener();
   };
+  wrapHandler = (handler, domain, checkConfig = []) => {
+    return async (...args) => {
+      try {
+        const { isInWhiteList, tab } = await this.commonHelper.validateDomain(
+          domain
+        );
+        if (!isInWhiteList) return;
+        const userInfo = await this.userInfoService.getUserInfo();
+        const { email, project, geminiKey, prompt } = userInfo || {};
+        if (checkConfig?.includes("gitlab")) {
+          if (!email || !project) {
+            this.commonHelper.showMessage("请先配置邮箱和项目");
+            return;
+          }
+        }
+        if (checkConfig?.includes("gemini")) {
+          if (!geminiKey || !prompt) {
+            this.commonHelper.showMessage("请先配置Gemini API Key和提示词");
+            return;
+          }
+        }
+        return await handler.apply(handler, [{ tab, userInfo }, ...args]);
+      } catch (error) {
+        console.error(error);
+        this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+      }
+    };
+  };
   addEventListener = () => {
+    this.dcsAndListeners();
+    this.settingsAndListeners();
+    this.gitlabAndListeners();
+    this.pipelineAndListeners();
+  };
+  dcsAndListeners = () => {
     // 获取用户信息按钮
     const getUserBtn = document.getElementById("get-user-btn");
     if (getUserBtn) {
-      getUserBtn.addEventListener("click", this.dcsService.fetchUserInfo);
+      const handler = this.wrapHandler(this.dcsService.fetchUserInfo, ["gray"]);
+      getUserBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: getUserBtn,
+        event: "click",
+        handler,
+      });
     }
-    // 获取上周日报按钮
-    const getLastWeekCommitListBtn = document.getElementById(
-      "get-last-week-commit-list-btn"
-    );
-    if (getLastWeekCommitListBtn) {
-      getLastWeekCommitListBtn.addEventListener(
-        "click",
-        this.gitlabService.fetchLastWeekCommits
-      );
-    }
-    // 获取本周日报按钮
-    const getCurrentWeekCommitListBtn = document.getElementById(
-      "get-current-week-commit-list-btn"
-    );
-    if (getCurrentWeekCommitListBtn) {
-      getCurrentWeekCommitListBtn.addEventListener(
-        "click",
-        this.gitlabService.fetchCurrentWeekCommits
-      );
-    }
-    // 添加跳转按钮
-    const addMenuButton = document.getElementById("add-menu-button");
-    if (addMenuButton) {
-      addMenuButton.addEventListener(
-        "click",
-        this.urlButtonManager.addUrlButton
-      );
-    }
+  };
+  settingsAndListeners = () => {
     // 监听 email 和 project 输入变化
     const emailInput = document.getElementById("email-input");
     const projectInput = document.getElementById("project-input");
     if (emailInput) {
-      emailInput.addEventListener("input", () => {
+      const handler = () => {
         this.commonHelper.updateLocalStorage(
           "userInfo",
           "email",
           emailInput.value.trim()
         );
+      };
+      emailInput.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: emailInput,
+        event: "input",
+        handler,
       });
     }
     if (projectInput) {
-      projectInput.addEventListener("input", () => {
+      const handler = () => {
         this.commonHelper.updateLocalStorage(
           "userInfo",
           "project",
           projectInput.value.trim()
         );
+      };
+      projectInput.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: projectInput,
+        event: "input",
+        handler,
       });
     }
     // 监听gemini-key-input和prompt-input输入变化
     const geminiKeyInput = document.getElementById("gemini-key-input");
     const promptInput = document.getElementById("prompt-input");
     if (geminiKeyInput) {
-      geminiKeyInput.addEventListener("input", () => {
+      const handler = () => {
         this.commonHelper.updateLocalStorage(
           "userInfo",
           "geminiKey",
           geminiKeyInput.value.trim()
         );
+      };
+      geminiKeyInput.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: geminiKeyInput,
+        event: "input",
+        handler,
       });
     }
     if (promptInput) {
-      promptInput.addEventListener("input", () => {
+      const handler = () => {
         this.commonHelper.updateLocalStorage(
           "userInfo",
           "prompt",
           promptInput.value.trim()
         );
+      };
+      promptInput.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: promptInput,
+        event: "input",
+        handler,
       });
-    }
-    // 创建Pull Request按钮
-    const autoPullTitleBtn = document.getElementById("auto-pull-title-btn");
-    if (autoPullTitleBtn) {
-      autoPullTitleBtn.addEventListener(
-        "click",
-        this.gitlabService.autoCreatePullRequest
-      );
-    }
-    // 接受Pull Request按钮
-    const autoAcceptPullRequestBtn = document.getElementById("auto-accept-pull-request-btn");
-    if (autoAcceptPullRequestBtn) {
-      autoAcceptPullRequestBtn.addEventListener(
-        "click",
-        this.gitlabService.autoAcceptPullRequest
-      );
-    }
-    // 清空我的分支按钮
-    const clearMyBranchesBtn = document.getElementById("clear-my-branches-btn");
-    if (clearMyBranchesBtn) {
-      clearMyBranchesBtn.addEventListener(
-        "click",
-        this.gitlabService.clearMyBranches
-      );
     }
     // 设置页面开关按钮
     const settingsIcon = document.getElementById("settings-icon");
     const settingsPanel = document.getElementById("settings-panel");
     const settingsCloseBtn = document.getElementById("settings-close-btn");
     if (settingsIcon && settingsPanel) {
-      settingsIcon.addEventListener("click", () => {
+      const handler = () => {
         settingsPanel.classList.remove("hide");
         settingsPanel.classList.add("show");
+      };
+      settingsIcon.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: settingsIcon,
+        event: "click",
+        handler,
       });
     }
     if (settingsCloseBtn && settingsPanel) {
-      settingsCloseBtn.addEventListener("click", () => {
+      const handler = () => {
         settingsPanel.classList.remove("show");
         settingsPanel.classList.add("hide");
+      };
+      settingsCloseBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: settingsCloseBtn,
+        event: "click",
+        handler,
       });
     }
-    this.pipelineAndListeners();
+    // 添加跳转按钮
+    const addMenuButton = document.getElementById("add-menu-button");
+    if (addMenuButton) {
+      const handler = this.wrapHandler(this.urlButtonManager.addUrlButton, []);
+      addMenuButton.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: addMenuButton,
+        event: "click",
+        handler,
+      });
+    }
+  };
+  gitlabAndListeners = () => {
+    // 获取上周日报按钮
+    const getLastWeekCommitListBtn = document.getElementById(
+      "get-last-week-commit-list-btn"
+    );
+    if (getLastWeekCommitListBtn) {
+      const handler = this.wrapHandler(
+        this.gitlabService.fetchLastWeekCommits,
+        ["devops"],
+        ["gitlab"]
+      );
+      getLastWeekCommitListBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: getLastWeekCommitListBtn,
+        event: "click",
+        handler,
+      });
+    }
+    // 获取本周日报按钮
+    const getCurrentWeekCommitListBtn = document.getElementById(
+      "get-current-week-commit-list-btn"
+    );
+    if (getCurrentWeekCommitListBtn) {
+      const handler = this.wrapHandler(
+        this.gitlabService.fetchCurrentWeekCommits,
+        ["devops"],
+        ["gitlab"]
+      );
+      getCurrentWeekCommitListBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: getCurrentWeekCommitListBtn,
+        event: "click",
+        handler,
+      });
+    }
+    // 创建Pull Request按钮
+    const autoPullTitleBtn = document.getElementById("auto-pull-title-btn");
+    if (autoPullTitleBtn) {
+      const handler = this.wrapHandler(
+        this.gitlabService.autoCreatePullRequest,
+        ["devops"],
+        ["gitlab"]
+      );
+      autoPullTitleBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: autoPullTitleBtn,
+        event: "click",
+        handler,
+      });
+    }
+    // 接受Pull Request按钮
+    const autoAcceptPullRequestBtn = document.getElementById(
+      "auto-accept-pull-request-btn"
+    );
+    if (autoAcceptPullRequestBtn) {
+      const handler = this.wrapHandler(
+        this.gitlabService.autoAcceptPullRequest,
+        ["devops"],
+        ["gitlab"]
+      );
+      autoAcceptPullRequestBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: autoAcceptPullRequestBtn,
+        event: "click",
+        handler,
+      });
+    }
+    // 清空我的分支按钮
+    const clearMyBranchesBtn = document.getElementById("clear-my-branches-btn");
+    if (clearMyBranchesBtn) {
+      const handler = this.wrapHandler(
+        this.gitlabService.clearMyBranches,
+        ["devops"],
+        ["gitlab"]
+      );
+      clearMyBranchesBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: clearMyBranchesBtn,
+        event: "click",
+        handler,
+      });
+    }
   };
   pipelineAndListeners = () => {
     // 运行成本gray流水线按钮
     const costGrayBtn = document.getElementById("run-pipeline-btn-cost-gray");
     if (costGrayBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "cost",
-          "gray",
-          "run-pipeline-btn-cost-gray"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["cost", "gray", "run-pipeline-btn-cost-gray"]);
       costGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: costGrayBtn,
@@ -152,13 +270,12 @@ class CoreController {
     // 运行成本uat流水线按钮
     const costUatBtn = document.getElementById("run-pipeline-btn-cost-uat");
     if (costUatBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "cost",
-          "uat",
-          "run-pipeline-btn-cost-uat"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["cost", "uat", "run-pipeline-btn-cost-uat"]);
       costUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({ element: costUatBtn, event: "click", handler });
     }
@@ -167,13 +284,12 @@ class CoreController {
       "run-pipeline-btn-public-gray"
     );
     if (publicGrayBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "public",
-          "gray",
-          "run-pipeline-btn-public-gray"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["public", "gray", "run-pipeline-btn-public-gray"]);
       publicGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: publicGrayBtn,
@@ -184,13 +300,12 @@ class CoreController {
     // 运行公共uat流水线按钮
     const publicUatBtn = document.getElementById("run-pipeline-btn-public-uat");
     if (publicUatBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "public",
-          "uat",
-          "run-pipeline-btn-public-uat"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["public", "uat", "run-pipeline-btn-public-uat"]);
       publicUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: publicUatBtn,
@@ -203,13 +318,12 @@ class CoreController {
       "run-pipeline-btn-target-gray"
     );
     if (targetGrayBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "target",
-          "gray",
-          "run-pipeline-btn-target-gray"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["target", "gray", "run-pipeline-btn-target-gray"]);
       targetGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: targetGrayBtn,
@@ -220,13 +334,12 @@ class CoreController {
     // 运行目标uat流水线按钮
     const targetUatBtn = document.getElementById("run-pipeline-btn-target-uat");
     if (targetUatBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "target",
-          "uat",
-          "run-pipeline-btn-target-uat"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["target", "uat", "run-pipeline-btn-target-uat"]);
       targetUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: targetUatBtn,
@@ -239,13 +352,12 @@ class CoreController {
       "run-pipeline-btn-income-gray"
     );
     if (incomeGrayBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "income",
-          "gray",
-          "run-pipeline-btn-income-gray"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["income", "gray", "run-pipeline-btn-income-gray"]);
       incomeGrayBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: incomeGrayBtn,
@@ -256,13 +368,12 @@ class CoreController {
     // 运行收入uat流水线按钮
     const incomeUatBtn = document.getElementById("run-pipeline-btn-income-uat");
     if (incomeUatBtn) {
-      const handler = () => {
-        this.pipelineService.runPipeline(
-          "income",
-          "uat",
-          "run-pipeline-btn-income-uat"
-        );
-      };
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () => wrappedHandler(["income", "uat", "run-pipeline-btn-income-uat"]);
       incomeUatBtn.addEventListener("click", handler);
       this.eventHandlers.push({
         element: incomeUatBtn,
@@ -330,28 +441,26 @@ class CommonHelper {
    */
   validateDomain = async (types) => {
     const tab = await this.getCurrentTab();
-    try {
-      const url = tab.url || "";
-      for (const type of types) {
-        if (this.whiteList[type].some((item) => url.includes(item))) {
-          return {
-            tab,
-            isInWhiteList: true,
-          };
-        }
-      }
-      this.showMessage("请在指定的域名下使用");
+    const url = tab?.url ?? "";
+    if (!types.length) {
       return {
         tab,
-        isInWhiteList: false,
-      };
-    } catch (error) {
-      this.showMessage("重新刷新页面后重试");
-      return {
-        tab,
-        isInWhiteList: false,
+        isInWhiteList: true,
       };
     }
+    for (const type of types) {
+      if (this.whiteList[type].some((item) => url.includes(item))) {
+        return {
+          tab,
+          isInWhiteList: true,
+        };
+      }
+    }
+    this.showMessage("请在指定的域名下使用");
+    return {
+      tab,
+      isInWhiteList: false,
+    };
   };
   /**
    * 格式化日期为YYYY-MM-DD
@@ -539,7 +648,9 @@ class UrlButtonManager {
           ? ""
           : `<span class="chip-delete" data-index="${index}" title="删除">×</span>`;
         return `
-        <${isDefault ? "a" : "div"} class="chip ${chipClass}" data-url="${item.url}" ${isDefault ? 'href="#"' : ''}>
+        <${isDefault ? "a" : "div"} class="chip ${chipClass}" data-url="${
+          item.url
+        }" ${isDefault ? 'href="#"' : ""}>
           ${item.btn}
           ${deleteBtn}
         </${isDefault ? "a" : "div"}>
@@ -640,148 +751,92 @@ class GitlabService {
   /**
    * 清空我的分支
    */
-  clearMyBranches = async () => {
-    try {
-      const { isInWhiteList, tab } = await this.commonHelper.validateDomain([
-        "devops",
-      ]);
-      if (!isInWhiteList) return;
-      const { email, project } = await this.userInfoService.getUserInfo();
-      if (!email || !project) {
-        this.commonHelper.showMessage("请先配置邮箱和项目");
+  clearMyBranches = async ({ tab, userInfo }) => {
+    if (
+      !tab.url?.includes(
+        `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/branches`
+      )
+    ) {
+      this.commonHelper.showMessage(
+        "当前页面不是我的分支页面，先看一眼确定一下哦"
+      );
+      return;
+    }
+    const url = `https://devops.cscec.com/api/code/api/osc/${userInfo.project}/-/branches?filter=my&page=1&per_page=50`;
+    const response = await chrome.runtime.sendMessage({
+      action: "getMyBranches",
+      data: { url },
+    });
+    let branches = [];
+    if (response && response.code === 0 && response.data) {
+      const lists = response.data?.list || [];
+      branches = lists.map((item) => item?.name).filter(Boolean);
+      if (branches.length === 0) {
+        this.commonHelper.showMessage("我的分支列表为空");
         return;
       }
-      if (
-        !tab.url?.includes(
-          `https://devops.cscec.com/osc/_source/osc/${project}/-/branches`
-        )
-      ) {
-        this.commonHelper.showMessage(
-          "当前页面不是我的分支页面，先看一眼确定一下哦"
-        );
-        return;
-      }
-      const url = `https://devops.cscec.com/api/code/api/osc/${project}/-/branches?filter=my&page=1&per_page=50`;
-      const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
-          {
-            action: "getMyBranches",
-            data: { url },
-          },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-              return;
-            }
-            resolve(response);
-          }
-        );
-      });
-      let branches = [];
-      if (response && response.code === 0 && response.data) {
-        const lists = response.data?.list || [];
-        branches = lists.map((item) => item?.name).filter(Boolean);
-        if (branches.length === 0) {
-          this.commonHelper.showMessage("我的分支列表为空");
-          return;
-        }
-      }
-      const deleteResponse = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
-          {
-            action: "clearBranches",
-            data: { branches: branches, project: project },
-          },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-              return;
-            }
-            resolve(response);
-          }
-        );
-      });
-      if (deleteResponse && deleteResponse.code === 0) {
-        this.commonHelper.showMessage("清空我的分支成功", "success");
-        this.commonHelper.reloadPage();
-      } else {
-        this.commonHelper.showMessage("清空我的分支失败");
-      }
+    }
+    const deleteResponse = await chrome.runtime.sendMessage({
+      action: "clearBranches",
+      data: { branches: branches, project: userInfo.project },
+    });
+    if (deleteResponse && deleteResponse.code === 0) {
+      this.commonHelper.showMessage("清空我的分支成功", "success");
+      this.commonHelper.reloadPage();
       this.commonHelper.closeWindow();
-    } catch (error) {
-      this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+    } else {
+      this.commonHelper.showMessage("清空我的分支失败");
     }
   };
   /**
    * 自动填写标题并创建Pull Request
    */
-  autoCreatePullRequest = async () => {
-    try {
-      const { isInWhiteList, tab } = await this.commonHelper.validateDomain([
-        "devops",
-      ]);
-      if (!isInWhiteList) return;
-      const { email, project } = await this.userInfoService.getUserInfo();
-      if (!email || !project) {
-        this.commonHelper.showMessage("请先配置邮箱和项目");
-        return;
-      }
-      if (
-        !tab.url?.includes(
-          `https://devops.cscec.com/osc/_source/osc/${project}/-/pull_requests/new?source_branch`
-        )
-      ) {
-        this.commonHelper.showMessage("当前页面不是创建Pull Request页面");
-        return;
-      }
+  autoCreatePullRequest = async ({ tab, userInfo }) => {
+    if (
+      !tab.url?.includes(
+        `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/pull_requests/new?source_branch`
+      )
+    ) {
+      this.commonHelper.showMessage("当前页面不是创建Pull Request页面");
+      return;
+    }
 
-      const params = this.commonHelper.parseUrlParams(tab.url);
-      const finalUrl = `https://devops.cscec.com/api/code/api/osc/${project}/-/pull_requests/new?type=commits&target_branch=${params.target_branch}&check_branch=&source_branch=${params.source_branch}&page=1&per_page=2`;
-      const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
-          {
-            action: "getPullRequestList",
-            data: { url: finalUrl },
-          },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-              return;
-            }
-            resolve(response);
-          }
-        );
-      });
-      if (response && response.code === 0 && response.data?.title) {
-        await this.commonHelper.copyToClipboard(response.data.title);
-        this.commonHelper.showMessage(response.data.title, "success");
-        this.commonHelper.closeWindow();
-      } else {
-        this.commonHelper.showMessage("获取Title失败");
-      }
-    } catch (error) {
-      this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+    const params = this.commonHelper.parseUrlParams(tab.url);
+    const finalUrl = `https://devops.cscec.com/api/code/api/osc/${userInfo.project}/-/pull_requests/new?type=commits&target_branch=${params.target_branch}&check_branch=&source_branch=${params.source_branch}&page=1&per_page=2`;
+    const response = await chrome.runtime.sendMessage({
+      action: "getPullRequestList",
+      data: { url: finalUrl },
+    });
+    if (response && response.code === 0 && response.data?.title) {
+      await this.commonHelper.copyToClipboard(response.data.title);
+      this.commonHelper.showMessage(response.data.title, "success");
+      this.commonHelper.closeWindow();
+    } else {
+      this.commonHelper.showMessage(response?.message || "获取Title失败");
     }
   };
   /**
    * 自动接受Pull Request
    */
-  autoAcceptPullRequest = async () => {
-    const { isInWhiteList, tab } = await this.commonHelper.validateDomain([
-      "devops",
-    ]);
-    if (!isInWhiteList) return;
-    const result = await chrome.runtime.sendMessage({ action: "autoAcceptPullRequest" });
+  autoAcceptPullRequest = async ({ tab, userInfo }) => {
+    if (
+      !tab.url?.includes(
+        `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/pull_requests/`
+      )
+    ) {
+      this.commonHelper.showMessage("当前页面不是接受Pull Request页面");
+      return;
+    }
+    const result = await chrome.runtime.sendMessage({
+      action: "autoAcceptPullRequest",
+    });
     if (result && result.code === 0) {
       this.commonHelper.showMessage("接受Pull Request成功", "success");
       // 更新当前页面跳转到我的分支页面
       setTimeout(async () => {
-        const { project } = await this.userInfoService.getUserInfo();
-        if (!project) {
-          this.commonHelper.showMessage("请配置项目");
-          return;
-        }
-        await this.commonHelper.updateCurrentTabUrl(`https://devops.cscec.com/osc/_source/osc/${project}/-/cherry_pick/new`);
+        await this.commonHelper.updateCurrentTabUrl(
+          `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/cherry_pick/new`
+        );
       }, 1000);
     } else {
       this.commonHelper.showMessage(result?.message || "接受Pull Request失败");
@@ -790,40 +845,32 @@ class GitlabService {
   /**
    * 获取上周的commit列表
    */
-  fetchLastWeekCommits = async () => {
+  fetchLastWeekCommits = async (args) => {
     const { firstDay, lastDay } = this.commonHelper.getPreviousWeekRange();
-    this.fetchCommits(firstDay, lastDay, "get-last-week-commit-list-btn");
+    this.fetchCommits(firstDay, lastDay, "get-last-week-commit-list-btn", args);
   };
   /**
    * 获取本周的commit列表
    */
-  fetchCurrentWeekCommits = async () => {
+  fetchCurrentWeekCommits = async (args) => {
     const { firstDay, lastDay } = this.commonHelper.getCurrentWeekRange();
-    this.fetchCommits(firstDay, lastDay, "get-current-week-commit-list-btn");
+    this.fetchCommits(
+      firstDay,
+      lastDay,
+      "get-current-week-commit-list-btn",
+      args
+    );
   };
   /**
    * 获取指定日期范围的commit列表
    */
-  fetchCommits = async (firstDay, lastDay, buttonId) => {
+  fetchCommits = async (firstDay, lastDay, buttonId, { tab, userInfo }) => {
+    const { email, project } = userInfo || {};
     const btn = document.getElementById(buttonId);
     if (btn && !btn.getAttribute("data-original-text")) {
       btn.setAttribute("data-original-text", btn.textContent);
     }
     this.commonHelper.setButtonLoading(buttonId, true);
-    // 校验邮箱和项目
-    const { email, project } = await this.userInfoService.getUserInfo();
-    if (!email || !project) {
-      this.commonHelper.showMessage("请先配置邮箱和项目");
-      this.commonHelper.setButtonLoading(buttonId, false);
-      return;
-    }
-    const { isInWhiteList } = await this.commonHelper.validateDomain([
-      "devops",
-    ]);
-    if (!isInWhiteList) {
-      this.commonHelper.setButtonLoading(buttonId, false);
-      return;
-    }
     // 获取并重置显示区域
     const outputDiv = document.getElementById("ai-report-output");
     const copyBtn = document.getElementById("copy-report-btn");
@@ -834,105 +881,85 @@ class GitlabService {
       outputDiv.style.color = "#333";
     }
     if (copyBtn) copyBtn.style.display = "none";
-    try {
-      const url = `https://devops.cscec.com/api/code/api/osc/${project}/-/commits?commit_id=&keyword=&committer_name=${email}&author_name=&start_date=${firstDay}&end_date=${lastDay}&count=0&ref=heads%2Fuat&path=&page=1&per_page=200&scope=include_refs`;
-      const response = await new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage(
-          {
-            action: "getCommitList",
-            data: { url },
-          },
-          (response) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-              return;
+    const url = `https://devops.cscec.com/api/code/api/osc/${project}/-/commits?commit_id=&keyword=&committer_name=${email}&author_name=&start_date=${firstDay}&end_date=${lastDay}&count=0&ref=heads%2Fuat&path=&page=1&per_page=200&scope=include_refs`;
+    const response = await chrome.runtime.sendMessage({
+      action: "getCommitList",
+      data: { url },
+    });
+
+    if (response && response.code === 0) {
+      const lists = response?.data || [];
+      const commitList = lists
+        .filter((item) => !item.merge_commit)
+        .map((item) => {
+          return {
+            title: item.title || item.message,
+            created_at: new Date(
+              item.created_at || item.updated_at
+            ).toLocaleDateString(),
+          };
+        });
+      if (commitList.length === 0) {
+        this.commonHelper.showMessage("该时间段内没有找到提交记录");
+        if (outputDiv) outputDiv.textContent = "该时间段内没有找到提交记录。";
+        this.commonHelper.setButtonLoading(buttonId, false);
+        return;
+      }
+      const { geminiKey, prompt } = await this.userInfoService.getUserInfo();
+      if (geminiKey && prompt) {
+        if (outputDiv)
+          outputDiv.textContent = "成功获取提交记录...\n正在生成 AI 日报...\n";
+        // 调用流式生成接口
+        await this.geminiService.generateReportStream(
+          geminiKey,
+          JSON.stringify(commitList),
+          prompt,
+          (currentText) => {
+            // 实时更新回调
+            if (outputDiv) {
+              outputDiv.textContent = currentText;
+              // 自动滚动到底部
+              outputDiv.scrollTop = outputDiv.scrollHeight;
             }
-            resolve(response);
+          },
+          (fullText) => {
+            // 完成回调
+            this.commonHelper.showMessage("日报生成完成，点击复制", "success");
+            this.commonHelper.setButtonLoading(buttonId, false);
+            // 显示复制按钮
+            if (copyBtn) {
+              copyBtn.style.display = "block";
+              copyBtn.onclick = () => {
+                this.commonHelper.copyToClipboard(fullText);
+                this.commonHelper.showMessage("已复制到剪切板", "success");
+                this.commonHelper.closeWindow();
+              };
+            }
+          },
+          (errorMessage) => {
+            // 错误回调
+            if (outputDiv) {
+              outputDiv.textContent += `\n\n[错误]: ${errorMessage}`;
+              outputDiv.style.color = "red";
+            }
+            this.commonHelper.setButtonLoading(buttonId, false);
           }
         );
-      });
-
-      if (response && response.code === 0) {
-        const lists = response?.data || [];
-        const commitList = lists
-          .filter((item) => !item.merge_commit)
-          .map((item) => {
-            return {
-              title: item.title || item.message,
-              created_at: new Date(
-                item.created_at || item.updated_at
-              ).toLocaleDateString(),
-            };
-          });
-        if (commitList.length === 0) {
-          this.commonHelper.showMessage("该时间段内没有找到提交记录");
-          if (outputDiv) outputDiv.textContent = "该时间段内没有找到提交记录。";
-          this.commonHelper.setButtonLoading(buttonId, false);
-          return;
-        }
-        const { geminiKey, prompt } = await this.userInfoService.getUserInfo();
-        if (geminiKey && prompt) {
-          if (outputDiv)
-            outputDiv.textContent =
-              "成功获取提交记录...\n正在生成 AI 日报...\n";
-          // 调用流式生成接口
-          await this.geminiService.generateReportStream(
-            geminiKey,
-            JSON.stringify(commitList),
-            prompt,
-            (currentText) => {
-              // 实时更新回调
-              if (outputDiv) {
-                outputDiv.textContent = currentText;
-                // 自动滚动到底部
-                outputDiv.scrollTop = outputDiv.scrollHeight;
-              }
-            },
-            (fullText) => {
-              // 完成回调
-              this.commonHelper.showMessage(
-                "日报生成完成，点击复制",
-                "success"
-              );
-              this.commonHelper.setButtonLoading(buttonId, false);
-              // 显示复制按钮
-              if (copyBtn) {
-                copyBtn.style.display = "block";
-                copyBtn.onclick = () => {
-                  this.commonHelper.copyToClipboard(fullText);
-                  this.commonHelper.showMessage("已复制到剪切板", "success");
-                  this.commonHelper.closeWindow();
-                };
-              }
-            },
-            (errorMessage) => {
-              // 错误回调
-              if (outputDiv) {
-                outputDiv.textContent += `\n\n[错误]: ${errorMessage}`;
-                outputDiv.style.color = "red";
-              }
-              this.commonHelper.setButtonLoading(buttonId, false);
-            }
-          );
-        } else {
-          await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
-          if (outputDiv)
-            outputDiv.textContent =
-              "未配置 Gemini API Key，已仅获取原始 Commit 记录并复制到剪切板。";
-          this.commonHelper.showMessage(
-            "未配置Gemini API Key或提示词，已复制提交记录到剪切板",
-            "success"
-          );
-        }
-        this.commonHelper.setButtonLoading(buttonId, false);
       } else {
+        await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
+        if (outputDiv)
+          outputDiv.textContent =
+            "未配置 Gemini API Key，已仅获取原始 Commit 记录并复制到剪切板。";
         this.commonHelper.showMessage(
-          response?.message || "获取Commit失败，刷新页面后重试"
+          "未配置Gemini API Key或提示词，已复制提交记录到剪切板",
+          "success"
         );
-        this.commonHelper.setButtonLoading(buttonId, false);
       }
-    } catch (error) {
-      this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+      this.commonHelper.setButtonLoading(buttonId, false);
+    } else {
+      this.commonHelper.showMessage(
+        response?.message || "获取Commit失败，刷新页面后重试"
+      );
       this.commonHelper.setButtonLoading(buttonId, false);
     }
   };
@@ -990,35 +1017,18 @@ class PipelineService {
     };
   }
 
-  runPipeline = async (type, branch, buttonId) => {
+  runPipeline = async (_, config) => {
+    const [type, branch, buttonId] = config;
     this.commonHelper.setButtonLoading(buttonId, true);
     const baseParams = this.pipelineConfig[type][branch];
-    const { isInWhiteList } = await this.commonHelper.validateDomain([
-      "devops",
-    ]);
-    if (!isInWhiteList) {
-      this.commonHelper.setButtonLoading(buttonId, false);
-      return;
-    }
-    const response = await new Promise((resolve, reject) => {
-      chrome.runtime.sendMessage(
-        {
-          action: "runPipeline",
-          data: {
-            baseParams: {
-              ...baseParams,
-              params: this.pipelineCommonConfig.params,
-            },
-          },
+    const response = await chrome.runtime.sendMessage({
+      action: "runPipeline",
+      data: {
+        baseParams: {
+          ...baseParams,
+          params: this.pipelineCommonConfig.params,
         },
-        (response) => {
-          if (chrome.runtime.lastError) {
-            reject(new Error(chrome.runtime.lastError.message));
-            return;
-          }
-          resolve(response);
-        }
-      );
+      },
     });
     if (response && response.code === 0) {
       this.commonHelper.showMessage("运行流水线成功", "success");
@@ -1036,36 +1046,28 @@ class DcsService {
   /**
    * 获取用户信息
    */
-  fetchUserInfo = async () => {
-    try {
-      const { isInWhiteList, tab } = await this.commonHelper.validateDomain([
-        "gray",
-      ]);
-      if (!isInWhiteList) return;
-      const results = await chrome.scripting.executeScript({
-        target: { tabId: tab.id },
-        world: "MAIN",
-        func: () => {
-          if (
-            typeof window.$udp !== "undefined" &&
-            typeof window.$udp.getUser === "function"
-          ) {
-            return window.$udp.getUser();
-          }
-          return null;
-        },
-      });
-      if (results?.[0]?.result) {
-        const userInfo = results?.[0]?.result;
-        const jsonStr = JSON.stringify(userInfo, null, 2);
-        await this.commonHelper.copyToClipboard(jsonStr);
-        this.commonHelper.showMessage("用户信息已复制到剪切板", "success");
-        this.commonHelper.closeWindow();
-      } else {
-        this.commonHelper.showMessage("$udp对象不存在无法获取用户信息");
-      }
-    } catch (error) {
-      this.commonHelper.showMessage("执行异常: 刷新页面后重试");
+  fetchUserInfo = async ({ tab }) => {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      world: "MAIN",
+      func: () => {
+        if (
+          typeof window.$udp !== "undefined" &&
+          typeof window.$udp.getUser === "function"
+        ) {
+          return window.$udp.getUser();
+        }
+        return null;
+      },
+    });
+    if (results?.[0]?.result) {
+      const userInfo = results?.[0]?.result;
+      const jsonStr = JSON.stringify(userInfo, null, 2);
+      await this.commonHelper.copyToClipboard(jsonStr);
+      this.commonHelper.showMessage("用户信息已复制到剪切板", "success");
+      this.commonHelper.closeWindow();
+    } else {
+      this.commonHelper.showMessage("$udp对象不存在无法获取用户信息");
     }
   };
 }
@@ -1120,38 +1122,33 @@ class GeminiService {
     // 构建 Prompt
     const finalPrompt = `${prompt}\n${commits}`;
     const url = `${this.baseUrl}:generateContent`;
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                {
-                  text: finalPrompt,
-                },
-              ],
-            },
-          ],
-        }),
-      });
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              {
+                text: finalPrompt,
+              },
+            ],
+          },
+        ],
+      }),
+    });
 
-      const data = await response.json();
+    const data = await response.json();
 
-      if (data.error) {
-        throw new Error(data.error.message);
-      }
-
-      const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-      return generatedText || "AI 未返回有效内容";
-    } catch (error) {
-      console.error("Gemini API Error:", error);
-      throw new Error("AI 生成失败: " + error.message);
+    if (data.error) {
+      throw new Error(data.error.message);
     }
+
+    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    return generatedText || "AI 未返回有效内容";
   };
   /**
    * 调用 Gemini 生成周报 (流式)
@@ -1173,65 +1170,54 @@ class GeminiService {
     const finalPrompt = `${prompt}\n${commits}`;
     // 使用 streamGenerateContent 接口，并开启 SSE 模式 (alt=sse)
     const url = `${this.baseUrl}:streamGenerateContent?alt=sse`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: finalPrompt }] }],
+      }),
+    });
 
-    try {
-      const response = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: finalPrompt }] }],
-        }),
-      });
+    if (!response.ok) {
+      throw new Error(
+        `API 请求失败: ${response.status} ${response.statusText}`
+      );
+    }
 
-      if (!response.ok) {
-        throw new Error(
-          `API 请求失败: ${response.status} ${response.statusText}`
-        );
-      }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = "";
+    let buffer = "";
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = "";
-      let buffer = "";
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
 
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
+      // 解析 SSE 数据
+      const lines = buffer.split("\n");
+      // 保留最后一个可能不完整的行
+      buffer = lines.pop();
 
-        // 解析 SSE 数据
-        const lines = buffer.split("\n");
-        // 保留最后一个可能不完整的行
-        buffer = lines.pop();
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === "[DONE]") continue; // 结束标记
-
-            try {
-              const data = JSON.parse(jsonStr);
-              const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-              if (textChunk) {
-                fullText += textChunk;
-                if (onUpdate) onUpdate(fullText); // 实时更新 UI
-              }
-            } catch (e) {
-              console.warn("解析 JSON 失败", e);
-            }
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === "[DONE]") continue; // 结束标记
+          const data = JSON.parse(jsonStr);
+          const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (textChunk) {
+            fullText += textChunk;
+            if (onUpdate) onUpdate(fullText); // 实时更新 UI
           }
         }
       }
-      if (onComplete) onComplete(fullText);
-    } catch (error) {
-      console.error("Gemini Stream Error:", error);
-      if (onError) onError(error.message);
     }
+    if (onComplete) onComplete(fullText);
   };
 }
 const coreController = new CoreController();
