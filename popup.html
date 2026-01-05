@@ -555,6 +555,13 @@
         font-size: 12px;
         color: var(--text-sub);
         margin-top: 4px;
+        word-break: break-all;
+        span {
+          background-color: #f0f0f0;
+          padding: 1px 4px;
+          font-size: 10px;
+          border-radius: 4px;
+        }
       }
 
       .loading-spinner {
@@ -603,7 +610,7 @@
           <div class="actions-icon">
             <div class="settings-icon icon-btn" id="settings-icon">⚙️</div>
             <div class="help-icon icon-btn">
-              <span>?</span>
+              <span>💡</span>
               <span class="tooltip"
                 >搜索状态时，输入1选择dev分支，输入2选择uat分支，输入3选择stable-uat分支，输入4选择stable分支</span
               >
@@ -755,8 +762,8 @@
               placeholder="绝对路径: Mac移除前面斜杠，Win不做处理"
               class="input-field"
             />
-            <div class="helper-text">Win格式:【D:/project/common-react/src/app.tsx:454:0】</div>
-            <div class="helper-text">Mac格式:【Users/username/project/common-react/src/app.tsx:454:0】</div>
+            <div class="helper-text">Win:<span>D:/project/common-react/src/app.tsx:454:0</span></div>
+            <div class="helper-text">Mac:<span>Users/username/project/common-react/src/app.tsx:454:0</span></div>
           </div>
         </div>
 
