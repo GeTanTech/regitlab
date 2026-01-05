@@ -97,7 +97,7 @@ const handle = {
       utilsService.sendErrorResponse({ sendResponse, message: "接受按钮不存在" });
       return true;
     };
-    await utilsService.delay();
+    await utilsService.delay(800);
     // merge
     const mergeBtn = Array.from(document.querySelectorAll(".merge_list")).find(
       el => {
@@ -111,7 +111,7 @@ const handle = {
       utilsService.sendErrorResponse({ sendResponse, message: "合并按钮不存在" });
       return true;
     }
-    await utilsService.delay();
+    await utilsService.delay(800);
     // 确定
     const confirmBtn = document.querySelector(
       "body > div.el-dialog__wrapper > div > div.el-dialog__footer > span > button.el-button.el-button--osc.el-button--medium"

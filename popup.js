@@ -1120,7 +1120,6 @@ class DcsService {
           }
         }
       }, 1000);
-      this.commonHelper.closeWindow();
     } else {
       this.commonHelper.showMessage("$udp对象不存在无法获取用户信息");
     }
