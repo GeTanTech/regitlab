@@ -2,12 +2,21 @@ class UtilsService {
   constructor() {
     this.ERROR_MESSAGE = "请求失败，检查参数或网络";
     this.SUCCESS_MESSAGE = "请求成功";
+    this.gitlabDomain = "https://devops.cscec.com";
   }
   sendErrorResponse = (args) => {
-    args.sendResponse({ code: 500, message: args.message || this.ERROR_MESSAGE, data: null });
+    args.sendResponse({
+      code: 500,
+      message: args.message || this.ERROR_MESSAGE,
+      data: null,
+    });
   };
   sendSuccessResponse = (args, result = null) => {
-    args.sendResponse({ code: 0, message: args.message || this.SUCCESS_MESSAGE, data: result });
+    args.sendResponse({
+      code: 0,
+      message: args.message || this.SUCCESS_MESSAGE,
+      data: result,
+    });
   };
   customGitlabFetch = async (url, callback, args, method = "GET") => {
     try {
@@ -73,8 +82,10 @@ class UtilsService {
 const utilsService = new UtilsService();
 const handle = {
   getPullRequestList: (request, _, sendResponse) => {
+    const { project, target_branch, source_branch } = request.data;
+    const url = `${utilsService.gitlabDomain}/api/code/api/osc/${project}/-/pull_requests/new?type=commits&target_branch=${target_branch}&check_branch=&source_branch=${source_branch}&page=1&per_page=2`;
     utilsService.customGitlabFetch(
-      request.data.url,
+      url,
       (args, result) => {
         let title = "合并";
         if (result.length === 1) {
@@ -91,16 +102,19 @@ const handle = {
     const acceptBtn = document.querySelector(
       "#spa-mount-point > div > div.code-app-layout > div > div > div:nth-child(1) > div.ent-resource-main.has-menu > div > div > div.pull-detail__info-wrapper > div.pull-detail__info > div.pull-detail__info__tools__actions > div.pull_detail_action_top > div > span:nth-child(1) > span > button"
     );
-    if (acceptBtn){
+    if (acceptBtn) {
       acceptBtn.click();
     } else {
-      utilsService.sendErrorResponse({ sendResponse, message: "接受按钮不存在" });
+      utilsService.sendErrorResponse({
+        sendResponse,
+        message: "接受按钮不存在",
+      });
       return true;
-    };
+    }
     await utilsService.delay(800);
     // merge
     const mergeBtn = Array.from(document.querySelectorAll(".merge_list")).find(
-      el => {
+      (el) => {
         const h4 = el.querySelector("h4");
         return h4 && h4.textContent.trim() === "Merge";
       }
@@ -108,7 +122,10 @@ const handle = {
     if (mergeBtn) {
       mergeBtn.click();
     } else {
-      utilsService.sendErrorResponse({ sendResponse, message: "合并按钮不存在" });
+      utilsService.sendErrorResponse({
+        sendResponse,
+        message: "合并按钮不存在",
+      });
       return true;
     }
     await utilsService.delay(800);
@@ -119,24 +136,30 @@ const handle = {
     if (confirmBtn) {
       confirmBtn.click();
     } else {
-      utilsService.sendErrorResponse({ sendResponse, message: "确定按钮不存在" });
+      utilsService.sendErrorResponse({
+        sendResponse,
+        message: "确定按钮不存在",
+      });
       return true;
     }
-    utilsService.sendSuccessResponse({ sendResponse, message: "接受Pull Request成功" });
+    utilsService.sendSuccessResponse({
+      sendResponse,
+      message: "接受Pull Request成功",
+    });
   },
   getCommitList: (request, _, sendResponse) => {
-    utilsService.customGitlabFetch(
-      request.data.url,
-      utilsService.sendSuccessResponse,
-      { sendResponse }
-    );
+    const { project, email, firstDay, lastDay } = request.data;
+    const url = `${utilsService.gitlabDomain}/api/code/api/osc/${project}/-/commits?commit_id=&keyword=&committer_name=${email}&author_name=&start_date=${firstDay}&end_date=${lastDay}&count=0&ref=heads%2Fuat&path=&page=1&per_page=200&scope=include_refs`;
+    utilsService.customGitlabFetch(url, utilsService.sendSuccessResponse, {
+      sendResponse,
+    });
   },
   getMyBranches: (request, _, sendResponse) => {
-    utilsService.customGitlabFetch(
-      request.data.url,
-      utilsService.sendSuccessResponse,
-      { sendResponse }
-    );
+    const { project } = request.data;
+    const url = `${utilsService.gitlabDomain}/api/code/api/osc/${project}/-/branches?filter=my&page=1&per_page=50`;
+    utilsService.customGitlabFetch(url, utilsService.sendSuccessResponse, {
+      sendResponse,
+    });
   },
   clearBranches: async (request, _, sendResponse) => {
     const { branches = [], project } = request.data;
@@ -146,7 +169,7 @@ const handle = {
     }
     try {
       for (const branch of branches) {
-        const url = `https://devops.cscec.com/api/code/api/osc/${project}/-/branches/${branch}`;
+        const url = `${utilsService.gitlabDomain}/api/code/api/osc/${project}/-/branches/${branch}`;
         await utilsService.customGitlabDelete(url, () => {}, {
           sendResponse: null,
         });
@@ -161,11 +184,10 @@ const handle = {
     try {
       const { baseParams } = request.data;
       const { branch, pipelineConfId, params } = baseParams;
-      const referrer =
-        "https://devops.cscec.com/osc/_ipipe/new-ipipe/pipelines/list?viewId=FAVORITE";
+      const referrer = `${utilsService.gitlabDomain}/osc/_ipipe/new-ipipe/pipelines/list?viewId=FAVORITE`;
       // 获取pipeline信息
       const piplineInfo = await utilsService.commonFetch(
-        `https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v4/pipelines/${pipelineConfId}?encryptParams=false`,
+        `${utilsService.gitlabDomain}/osc/_ipipe/ipipe/pipeline/rest/v4/pipelines/${pipelineConfId}?encryptParams=false`,
         { referrer }
       );
       const materialSourcePipelineId = piplineInfo?.watchers?.find(
@@ -180,7 +202,7 @@ const handle = {
       }
       // 获取commit列表
       const commitList = await utilsService.commonFetch(
-        `https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches/commits?branch=${branch}&materialSourcePipelineId=${materialSourcePipelineId}&_offset=0&_limit=1`,
+        `${utilsService.gitlabDomain}/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches/commits?branch=${branch}&materialSourcePipelineId=${materialSourcePipelineId}&_offset=0&_limit=1`,
         { referrer }
       );
       const commit = commitList[0];
@@ -205,16 +227,16 @@ const handle = {
         ],
       };
       const result = await utilsService.commonFetch(
-        `https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v4/pipeline-builds`,
+        `${utilsService.gitlabDomain}/osc/_ipipe/ipipe/pipeline/rest/v4/pipeline-builds`,
         {
           referrer,
           method: "POST",
           body: JSON.stringify(queryParams),
           headers: {
-            "accept": "application/json, text/plain, */*",
+            accept: "application/json, text/plain, */*",
             "content-type": "application/json",
-            "xly_enterprise": "osc",
-            "xly_project": "_ipipe"
+            xly_enterprise: "osc",
+            xly_project: "_ipipe",
           },
         }
       );

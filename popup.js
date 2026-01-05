@@ -434,10 +434,11 @@ class CoreController {
 }
 class CommonHelper {
   constructor() {
+    this.gitlabDomain = "https://devops.cscec.com";
     // 域名白名单
     this.whiteList = {
       gray: ["https://dcs-uat-gray.cscec.com"],
-      devops: ["https://devops.cscec.com"],
+      devops: [this.gitlabDomain],
     };
   }
   /**
@@ -801,7 +802,7 @@ class GitlabService {
   clearMyBranches = async ({ tab, userInfo }) => {
     if (
       !tab.url?.includes(
-        `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/branches`
+        `${this.commonHelper.gitlabDomain}/osc/_source/osc/${userInfo.project}/-/branches`
       )
     ) {
       this.commonHelper.showMessage(
@@ -809,10 +810,9 @@ class GitlabService {
       );
       return;
     }
-    const url = `https://devops.cscec.com/api/code/api/osc/${userInfo.project}/-/branches?filter=my&page=1&per_page=50`;
     const response = await chrome.runtime.sendMessage({
       action: "getMyBranches",
-      data: { url },
+      data: { project: userInfo.project },
     });
     let branches = [];
     if (response && response.code === 0 && response.data) {
@@ -841,18 +841,20 @@ class GitlabService {
   autoCreatePullRequest = async ({ tab, userInfo }) => {
     if (
       !tab.url?.includes(
-        `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/pull_requests/new?source_branch`
+        `${this.commonHelper.gitlabDomain}/osc/_source/osc/${userInfo.project}/-/pull_requests/new?source_branch`
       )
     ) {
       this.commonHelper.showMessage("当前页面不是创建Pull Request页面");
       return;
     }
-
     const params = this.commonHelper.parseUrlParams(tab.url);
-    const finalUrl = `https://devops.cscec.com/api/code/api/osc/${userInfo.project}/-/pull_requests/new?type=commits&target_branch=${params.target_branch}&check_branch=&source_branch=${params.source_branch}&page=1&per_page=2`;
     const response = await chrome.runtime.sendMessage({
       action: "getPullRequestList",
-      data: { url: finalUrl },
+      data: {
+        project: userInfo.project,
+        target_branch: params.target_branch,
+        source_branch: params.source_branch,
+      },
     });
     if (response && response.code === 0 && response.data?.title) {
       await this.commonHelper.copyToClipboard(response.data.title);
@@ -868,7 +870,7 @@ class GitlabService {
   autoAcceptPullRequest = async ({ tab, userInfo }) => {
     if (
       !tab.url?.includes(
-        `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/pull_requests/`
+        `${this.commonHelper.gitlabDomain}/osc/_source/osc/${userInfo.project}/-/pull_requests/`
       )
     ) {
       this.commonHelper.showMessage("当前页面不是接受Pull Request页面");
@@ -882,7 +884,7 @@ class GitlabService {
       // 更新当前页面跳转到我的分支页面
       setTimeout(async () => {
         await this.commonHelper.updateCurrentTabUrl(
-          `https://devops.cscec.com/osc/_source/osc/${userInfo.project}/-/cherry_pick/new`
+          `${this.commonHelper.gitlabDomain}/osc/_source/osc/${userInfo.project}/-/cherry_pick/new`
         );
       }, 1000);
     } else {
@@ -924,10 +926,14 @@ class GitlabService {
       outputDiv.style.color = "#333";
     }
     if (copyBtn) copyBtn.style.display = "none";
-    const url = `https://devops.cscec.com/api/code/api/osc/${project}/-/commits?commit_id=&keyword=&committer_name=${email}&author_name=&start_date=${firstDay}&end_date=${lastDay}&count=0&ref=heads%2Fuat&path=&page=1&per_page=200&scope=include_refs`;
     const response = await chrome.runtime.sendMessage({
       action: "getCommitList",
-      data: { url },
+      data: {
+        project,
+        email,
+        firstDay,
+        lastDay,
+      },
     });
 
     if (response && response.code === 0) {
