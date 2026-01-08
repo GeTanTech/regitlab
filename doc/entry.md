@@ -66,3 +66,70 @@ Ts = async function (e, t) {
   });
 }
 ```
+
+---
+替换前的内容
+
+``` js | pure
+o = e => {
+  let {materialSourcePipelineId: t, sourceType: n, certificateId: o, keyword: c, limit: d, offset: u=0} = e;
+  const p = (0,
+  l.Eq)({
+      query: c,
+      materialSourcePipelineId: t,
+      _offset: u,
+      _limit: d
+  })
+  , h = s.getCacheKey("__getMany", p);
+  let m;
+  return m = s.has(h) ? Promise.resolve(s.get(h)) : (0,
+  i.A_)(r.VP, p).then((e => (s.set(h, e.data),
+  e.data))),
+  m.then((e => ({
+      request: {
+          params: {
+              materialSourcePipelineId: t
+          },
+          query: (0,
+          a.Z)(( (e, t) => t.startsWith("_")), p),
+          meta: {
+              offset: u,
+              limit: d
+          }
+      },
+      response: e
+  })))
+```
+
+替换后的内容，增加了pattern的url拼接
+
+```js | pure
+o = e => {
+  let {materialSourcePipelineId: t, sourceType: n, certificateId: o, keyword: c, limit: d, offset: u=0, pattern} = e;
+  const p = (0,
+  l.Eq)({
+      query: c,
+      materialSourcePipelineId: t,
+      _offset: u,
+      _limit: d
+  })
+  , h = s.getCacheKey("__getMany", p);
+  let m;
+  return m = s.has(h) ? Promise.resolve(s.get(h)) : (0,
+  i.A_)(r.VP, {pattern,...p}).then((e => (s.set(h, e.data),
+  e.data))),
+  m.then((e => ({
+      request: {
+          params: {
+              materialSourcePipelineId: t
+          },
+          query: (0,
+          a.Z)(( (e, t) => t.startsWith("_")), p),
+          meta: {
+              offset: u,
+              limit: d
+          }
+      },
+      response: e
+  })))
+```
