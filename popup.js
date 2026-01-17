@@ -127,6 +127,23 @@ class CoreController {
         handler,
       });
     }
+    // 监听提交记录分支输入变化
+    const commitHistoryBranchInput = document.getElementById("commit-history-branch-input");
+    if (commitHistoryBranchInput) {
+      const handler = () => {
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "commitHistoryBranch",
+          commitHistoryBranchInput.value.trim()
+        );
+      };
+      commitHistoryBranchInput.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: commitHistoryBranchInput,
+        event: "input",
+        handler,
+      });
+    }
     // 监听编辑器配置输入变化
     const editorTypeInput = document.getElementById("editor-type-input");
     const devProjectPathInput = document.getElementById(
@@ -1001,6 +1018,7 @@ class GitlabService {
       outputDiv.style.color = "#333";
     }
     if (copyBtn) copyBtn.style.display = "none";
+    const branch = await this.commonHelper.getLocalStorage("userInfo", "commitHistoryBranch") || "uat";
     const response = await chrome.runtime.sendMessage({
       action: "getCommitList",
       data: {
@@ -1008,6 +1026,7 @@ class GitlabService {
         email,
         firstDay,
         lastDay,
+        branch,
       },
     });
 
@@ -1222,6 +1241,7 @@ class UserInfoService {
       editorType,
       devProjectPath,
       clearExcludeBranches,
+      commitHistoryBranch,
     } = await this.getUserInfo();
     const emailInput = document.getElementById("email-input");
     const projectInput = document.getElementById("project-input");
@@ -1234,6 +1254,7 @@ class UserInfoService {
     const clearExcludeBranchesTextarea = document.getElementById(
       "clear-exclude-branches-textarea"
     );
+    const commitHistoryBranchInput = document.getElementById("commit-history-branch-input");
     if (emailInput && email) {
       emailInput.value = email;
     }
@@ -1255,6 +1276,9 @@ class UserInfoService {
     if (clearExcludeBranchesTextarea && clearExcludeBranches) {
       clearExcludeBranchesTextarea.value = clearExcludeBranches;
     }
+    if (commitHistoryBranchInput && commitHistoryBranch) {
+      commitHistoryBranchInput.value = commitHistoryBranch;
+    }
   };
   /**
    * 获取用户信息
@@ -1270,6 +1294,7 @@ class UserInfoService {
       editorType,
       devProjectPath,
       clearExcludeBranches,
+      commitHistoryBranch,
     } = result || {};
     return {
       email,
@@ -1279,6 +1304,7 @@ class UserInfoService {
       editorType,
       devProjectPath,
       clearExcludeBranches,
+      commitHistoryBranch,
     };
   };
 }

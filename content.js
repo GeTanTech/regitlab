@@ -148,8 +148,8 @@ const handle = {
     });
   },
   getCommitList: (request, _, sendResponse) => {
-    const { project, email, firstDay, lastDay } = request.data;
-    const url = `${utilsService.gitlabDomain}/api/code/api/osc/${project}/-/commits?commit_id=&keyword=&committer_name=${email}&author_name=&start_date=${firstDay}&end_date=${lastDay}&count=0&ref=heads%2Fuat&path=&page=1&per_page=200&scope=include_refs`;
+    const { project, email, firstDay, lastDay, branch='uat' } = request.data;
+    const url = `${utilsService.gitlabDomain}/api/code/api/osc/${project}/-/commits?commit_id=&keyword=&committer_name=${email}&author_name=&start_date=${firstDay}&end_date=${lastDay}&count=0&ref=heads%2F${branch}&path=&page=1&per_page=200&scope=include_refs`;
     utilsService.customGitlabFetch(url, utilsService.sendSuccessResponse, {
       sendResponse,
     });

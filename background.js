@@ -106,17 +106,20 @@ async function initLocalStorage() {
   const defaultPrompt =
     "根据我的gitlab提交记录生成简短日报；1、按“[日期]：内容”格式输出，每天控制在50字以内；2、如内容包含“生产”，“开发”相关任务，需重点提及并优先保留；3、日志内容稍微具体点，不要过于笼统，避免假大空；内容如下：";
   const defaultProject = "cip-economic/cost-react-1";
+  const defaultCommitHistoryBranch = "uat";
   const defaultEditorType = "vscode";
   const result = await chrome.storage.local.get("userInfo");
-  const { urlButtons = [], prompt = "", project = "", editorType = ""} = result.userInfo || {};
+  const { urlButtons = [], prompt = "", project = "", editorType = "", commitHistoryBranch = ""} = result.userInfo || {};
   let _prompt = "";
   let _project = "";
   let _urlButtons = [];
   let _editorType = "";
+  let _commitHistoryBranch = "";
   if (!prompt) _prompt = defaultPrompt;
   if (!project) _project = defaultProject;
   if (urlButtons.length === 0) _urlButtons = Object.values(config);
   if (!editorType) _editorType = defaultEditorType;
+  if (!commitHistoryBranch) _commitHistoryBranch = defaultCommitHistoryBranch;
   await chrome.storage.local.set({
     userInfo: {
       ...(result.userInfo || {}),
@@ -124,6 +127,7 @@ async function initLocalStorage() {
       ...(_project ? { project: _project } : {}),
       ...(_urlButtons.length > 0 ? { urlButtons: _urlButtons } : {}),
       ...(_editorType ? { editorType: _editorType } : {}),
+      ...(_commitHistoryBranch ? { commitHistoryBranch: _commitHistoryBranch } : {}),
     },
   });
 }
