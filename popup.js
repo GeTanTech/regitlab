@@ -266,6 +266,8 @@ class CoreController {
 			  event: "click",
 			  handler,
 		  });
+			
+			
 	  }
 
 	  const filterMergeCommitCheckbox = document.getElementById("filter-merge-commit-checkbox");
