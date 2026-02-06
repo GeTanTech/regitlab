@@ -623,13 +623,19 @@
 												e.commitsList.push(t)
 											})), e.isScrollLoading = !1, e.$emit("afterGetList", s);
 											
-											const filterCommitListId = e.commitsList.filter((item) => {
+											// 获取配置的自动勾选行数，默认0表示不自动勾选
+											const autoCheckRowCount = parseInt(localStorage.getItem("autoCheckRowCount") || "0", 10);
+											const filteredList = e.commitsList.filter((item) => {
 												// 过滤已合并，和合并节点
 												// 只要自己的
 												return !item.merge_commit && !item.target_branch_merged && item.display_email === __committer_name;
-											}).map((function (t) {
-												// 设置当前已勾选
-												t.$v_checked = true;
+											});
+											// 只对前N行设置勾选状态
+											const rowsToCheck = autoCheckRowCount > 0 ? filteredList.slice(0, autoCheckRowCount) : [];
+											rowsToCheck.forEach((item) => {
+												item.$v_checked = true;
+											});
+											const filterCommitListId = rowsToCheck.map((function (t) {
 												return t.id;
 											}));
 											

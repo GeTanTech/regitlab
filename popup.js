@@ -299,6 +299,36 @@ class CoreController {
 			  handler,
 		  });
 	  }
+
+	  const autoCheckRowCountInput = document.getElementById("auto-check-row-count");
+	  if (autoCheckRowCountInput) {
+			// 从 storage 读取保存的值，默认为 0
+			chrome.storage.local.get(["autoCheckRowCount"], (result) => {
+				autoCheckRowCountInput.value = result.autoCheckRowCount || 0;
+			});
+
+			const handler = async () => {
+				const tab = await this.commonHelper.getCurrentTab();
+				const count = parseInt(autoCheckRowCountInput.value) || 0;
+				// 保存到 storage
+				await chrome.storage.local.set({ autoCheckRowCount: count });
+				chrome.scripting.executeScript({
+					target: { tabId: tab.id },
+					world: "MAIN",
+					func: (rowCount) => {
+						console.log("autoCheckRowCount", window.location.href, window, rowCount);
+						localStorage.setItem("autoCheckRowCount", rowCount);
+					},
+					args: [count],
+				});
+			}
+		  autoCheckRowCountInput.addEventListener("change", handler);
+		  this.eventHandlers.push({
+			  element: autoCheckRowCountInput,
+			  event: "change",
+			  handler,
+		  });
+	  }
   };
   gitlabAndListeners = () => {
     // 获取上周日报按钮
