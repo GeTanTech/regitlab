@@ -237,6 +237,68 @@ class CoreController {
         handler,
       });
     }
+		
+		const onlyMyselfCheckbox = document.getElementById("only-myself-checkbox");
+	  if (onlyMyselfCheckbox) {
+			// 从 storage 读取保存的值
+			chrome.storage.local.get(["onlyMyself"], (result) => {
+				onlyMyselfCheckbox.checked = result.onlyMyself || false;
+			});
+
+			const handler = async () => {
+				const tab = await this.commonHelper.getCurrentTab();
+				const checked = onlyMyselfCheckbox.checked;
+				// 保存到 storage
+				await chrome.storage.local.set({ onlyMyself: checked });
+				chrome.scripting.executeScript({
+					target: { tabId: tab.id },
+					world: "MAIN",
+					func: (isChecked) => {
+						console.log(8888, window.location.href, window, isChecked);
+						localStorage.setItem("onlyMyselfCheckbox", isChecked);
+					},
+					args: [checked],
+				});
+			}
+		  onlyMyselfCheckbox.addEventListener("change", handler);
+		  this.eventHandlers.push({
+			  element: onlyMyselfCheckbox,
+			  event: "click",
+			  handler,
+		  });
+			
+			
+	  }
+
+	  const filterMergeCommitCheckbox = document.getElementById("filter-merge-commit-checkbox");
+	  if (filterMergeCommitCheckbox) {
+			// 从 storage 读取保存的值，默认开启过滤
+			chrome.storage.local.get(["filterMergeCommit"], (result) => {
+				filterMergeCommitCheckbox.checked = result.filterMergeCommit !== false;
+			});
+
+			const handler = async () => {
+				const tab = await this.commonHelper.getCurrentTab();
+				const checked = filterMergeCommitCheckbox.checked;
+				// 保存到 storage
+				await chrome.storage.local.set({ filterMergeCommit: checked });
+				chrome.scripting.executeScript({
+					target: { tabId: tab.id },
+					world: "MAIN",
+					func: (isChecked) => {
+						console.log("filterMergeCommit", window.location.href, window, isChecked);
+						localStorage.setItem("filterMergeCommitCheckbox", isChecked);
+					},
+					args: [checked],
+				});
+			}
+		  filterMergeCommitCheckbox.addEventListener("change", handler);
+		  this.eventHandlers.push({
+			  element: filterMergeCommitCheckbox,
+			  event: "click",
+			  handler,
+		  });
+	  }
   };
   gitlabAndListeners = () => {
     // 获取上周日报按钮
