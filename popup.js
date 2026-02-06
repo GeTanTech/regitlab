@@ -1283,38 +1283,49 @@ class DcsService {
    * 获取用户信息
    */
   fetchUserInfo = async ({ tab }) => {
-    const results = await chrome.scripting.executeScript({
+    const { editorType, devProjectPath } = await this.userInfoService.getUserInfo();
+    await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       world: "MAIN",
-      func: () => {
+      func: (_editorType, _devProjectPath) => {
         if (
           typeof window.$udp !== "undefined" &&
           typeof window.$udp.getUser === "function"
         ) {
-          return window.$udp.getUser();
+          const userInfo = window.$udp.getUser();
+          // 使用原生 textarea + execCommand 方式复制用户信息到剪贴板
+          const jsonStr = JSON.stringify(userInfo, null, 2);
+          const textarea = document.createElement("textarea");
+          textarea.value = jsonStr;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          try {
+            const succeeded = document.execCommand("copy");
+            if (!succeeded) {
+              console.error("execCommand('copy') 执行失败");
+            }
+          } catch (err) {
+            console.error("使用 execCommand 复制到剪贴板失败:", err);
+          } finally {
+            document.body.removeChild(textarea);
+          }
+          // 创建临时链接元素并点击
+          const link = document.createElement("a");
+          link.href = `${_editorType}://file/${_devProjectPath}`;
+          link.target = "_self";
+          link.style.display = "none";
+          link.id = "editor-link";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         }
         return null;
       },
+      args: [editorType, devProjectPath],
     });
-    if (results?.[0]?.result) {
-      const userInfo = results?.[0]?.result;
-      const jsonStr = JSON.stringify(userInfo, null, 2);
-      await this.commonHelper.copyToClipboard(jsonStr);
-      this.commonHelper.showMessage("用户信息已复制到剪切板", "success");
-      setTimeout(async () => {
-        const { editorType, devProjectPath } =
-          await this.userInfoService.getUserInfo();
-        if (editorType && devProjectPath) {
-          const link = document.getElementById("editor-link");
-          if (link) {
-            link.href = `${editorType}://file/${devProjectPath}`;
-            link.click();
-          }
-        }
-      }, 1000);
-    } else {
-      this.commonHelper.showMessage("$udp对象不存在无法获取用户信息");
-    }
   };
 }
 class UserInfoService {
