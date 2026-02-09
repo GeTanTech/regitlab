@@ -130,6 +130,8 @@ async function initLocalStorage() {
       ...(_commitHistoryBranch ? { commitHistoryBranch: _commitHistoryBranch } : {}),
     },
   });
+	
+	
 }
 async function injectContentScriptsToAllTabs() {
   const windows = await chrome.windows.getAll({ populate: true });
@@ -184,6 +186,17 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   ) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, request, sendResponse);
+    });
+    return true;
+  }
+
+  // 处理获取自动勾选行数的请求
+  if (request.action === "getAutoCheckRowCount") {
+    chrome.storage.local.get(["autoCheckRowCount"], (result) => {
+      sendResponse({
+        code: 0,
+        data: result.autoCheckRowCount || 0
+      });
     });
     return true;
   }
