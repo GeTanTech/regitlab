@@ -129,17 +129,18 @@ loadCommits: function(t) {
   if (!this.commitsLoading) {
     t && (this.commitsList = []),
     this.commitsLoading = !0;
+    var is_cherry_pick_page = window?.location?.href?.includes('cherry_pick')
     // 自动点击【选择commit】按钮
-    if (document.querySelector('button[data-v-61b9d150]')) {
+    if (is_cherry_pick_page && document.querySelector('button[data-v-61b9d150]')) {
       document.querySelector('button[data-v-61b9d150]').click();
     }
     let params_extend = {}
     // 根据条件来控制是否仅显示自己的提交
-    if(window?.__EXTENSION_REGITLAB_CONFIG?.onlyMyself && window?.__EXTENSION_REGITLAB_CONFIG?.email) {
+    if(is_cherry_pick_page && window?.__EXTENSION_REGITLAB_CONFIG?.onlyMyself && window?.__EXTENSION_REGITLAB_CONFIG?.email) {
       params_extend['committer_name'] = window?.__EXTENSION_REGITLAB_CONFIG?.email;
       this.per_page = 100
     }
-    if (window?.__EXTENSION_REGITLAB_CONFIG?.filterMergeCommit) {
+    if (is_cherry_pick_page && window?.__EXTENSION_REGITLAB_CONFIG?.filterMergeCommit) {
       this.per_page = 100
     }
     var i = Object(r["a"])(Object(r["a"])({}, this.params), {}, {
@@ -155,7 +156,7 @@ loadCommits: function(t) {
     }).then(function() {
       var t = Object(o["a"])(Object(a["a"])().mark((function t(i) {
         if (i.data && Array.isArray(i.data.data)) {
-          if (window?.__EXTENSION_REGITLAB_CONFIG?.filterMergeCommit) {
+          if (is_cherry_pick_page && window?.__EXTENSION_REGITLAB_CONFIG?.filterMergeCommit) {
             i.data.data = i.data.data.filter((item) => {
               // 过滤已合并，和合并节点
               return !item.merge_commit && !item.target_branch_merged;
@@ -171,7 +172,7 @@ loadCommits: function(t) {
 默认选中前几个，也是在以上的基础上在结尾补充以下代码
 
 ```js | pure
-if(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount && Number(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount) > 0) {
+if(is_cherry_pick_page && window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount && Number(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount) > 0) {
   const filteredList = e.commitsList.filter((item) => {
     return !item.merge_commit && !item.target_branch_merged && item.display_email === window?.__EXTENSION_REGITLAB_CONFIG?.email;
   });
