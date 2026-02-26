@@ -1,3 +1,5 @@
+## 数字确定分支【app-8b356e9c830ae78ba3eb-entry.js】
+
 替换前的内容
 
 ```js | pure
@@ -11,63 +13,24 @@ Ts = function (e, t) {
 替换后的内容
 
 ```js | pure
-Ts = async function(e, t) {
-  const branchMap = {
-    "1": "dev",
-    "2": "uat",
-    "3": "stable-uat",
-    "4": "stable"
-  }
-  if(Object.keys(branchMap).includes(e.name)){
-    e.name = branchMap[e.name]
-    e.per_page = 1000
-    e.filter_hidden_branch = false
-  }
-  const res = await window.$http.get("".concat(Object(i["a"])(t), "/branches/names"), {
-      params: e
-  })
-  if(Object.values(branchMap).includes(e.name)){
-      let branch = res.data.data.branch
-      res.data.data.branch = branch.filter(item=>item == e.name)
-      res.data.meta.total_count = 1
-      res.data.meta.
-  }
-  return Promise.resolve(res)
-}
-```
-
-进一步优化
-
-```js | pure
 Ts = async function (e, t) {
-  const branchMap = {
-    1: "dev",
-    2: "uat",
-    3: "stable-uat",
-    4: "stable",
-  };
-  if(Object.keys(branchMap).includes(e.name)){
+  const branchMap = {1: "dev", 2: "uat", 3: "stable-uat", 4: "stable"};
+  if (Object.keys(branchMap).includes(e.name)) {
     const res = {
       data: {
-        data: {
-          branch: [branchMap[e.name]],
-        },
-         meta: {
-          current_page: 1,
-          total_pages: 1,
-          total_count: 1,
-        },
+        data: {branch: [branchMap[e.name]]},
+        meta: {current_page: 1, total_pages: 1, total_count: 1}
       }
     };
     return Promise.resolve(res);
   }
-  return window.$http.get("".concat(Object(i["a"])(t), "/branches/names"), {
-    params: e,
-  });
+  
+  return window.$http.get("".concat(Object(i["a"])(t), "/branches/names"), {params: e});
 }
 ```
 
----
+## 流水线查询分支接口增加环境类型参数【main.5ece8d7d22.js】
+
 替换前的内容
 
 ``` js | pure
@@ -101,7 +64,7 @@ o = e => {
   })))
 ```
 
-替换后的内容，增加了pattern的url拼接
+替换后的内容
 
 ```js | pure
 o = e => {
@@ -132,4 +95,96 @@ o = e => {
       },
       response: e
   })))
+```
+
+## 仅展示自己的提交、过滤已合并节点记录【chunk-23b24f81.0b5151df.js】
+
+替换前的内容
+
+```js | pure
+loadCommits: function(t) {
+  var e = this;
+  if (!this.commitsLoading) {
+    t && (this.commitsList = []),
+    this.commitsLoading = !0;
+    var i = Object(r["a"])(Object(r["a"])({}, this.params), {}, {
+        page: this.page,
+        per_page: this.per_page
+    });
+    "pending" === this.type && (i.no_check = !0),
+    this.$http.get(this.commitsUrl, {
+        params: i,
+        noCancel: ["pending", "pullCommits"].includes(this.type),
+        messageType: "warning"
+    })
+    // ...
+  }
+}
+```
+替换后的内容
+
+```js | pure
+loadCommits: function(t) {
+  var e = this;
+  if (!this.commitsLoading) {
+    t && (this.commitsList = []),
+    this.commitsLoading = !0;
+    // 自动点击【选择commit】按钮
+    if (document.querySelector('button[data-v-61b9d150]')) {
+      document.querySelector('button[data-v-61b9d150]').click();
+    }
+    let params_extend = {}
+    // 根据条件来控制是否仅显示自己的提交
+    if(window?.__EXTENSION_REGITLAB_CONFIG?.onlyMyself && window?.__EXTENSION_REGITLAB_CONFIG?.email) {
+      params_extend['committer_name'] = window?.__EXTENSION_REGITLAB_CONFIG?.email;
+      this.per_page = 100
+    }
+    if (window?.__EXTENSION_REGITLAB_CONFIG?.filterMergeCommit) {
+      this.per_page = 100
+    }
+    var i = Object(r["a"])(Object(r["a"])({}, this.params), {}, {
+        page: this.page,
+        per_page: this.per_page,
+        ...params_extend
+    });
+    "pending" === this.type && (i.no_check = !0),
+    this.$http.get(this.commitsUrl, {
+        params: i,
+        noCancel: ["pending", "pullCommits"].includes(this.type),
+        messageType: "warning"
+    }).then(function() {
+      var t = Object(o["a"])(Object(a["a"])().mark((function t(i) {
+        if (i.data && Array.isArray(i.data.data)) {
+          if (window?.__EXTENSION_REGITLAB_CONFIG?.filterMergeCommit) {
+            i.data.data = i.data.data.filter((item) => {
+              // 过滤已合并，和合并节点
+              return !item.merge_commit && !item.target_branch_merged;
+            })
+          }
+        }
+        //...
+    // ...
+  })
+}
+```
+
+默认选中前几个，也是在以上的基础上在结尾补充以下代码
+
+```js | pure
+if(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount && Number(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount) > 0) {
+  const filteredList = e.commitsList.filter((item) => {
+    return !item.merge_commit && !item.target_branch_merged && item.display_email === window?.__EXTENSION_REGITLAB_CONFIG?.email;
+  });
+  // 只对前N行设置勾选状态
+  const rowsToCheck = filteredList.slice(0, Number(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount));
+  rowsToCheck.forEach((item) => {
+    item.$v_checked = true;
+  });
+  const filterCommitListId = rowsToCheck.map((function (t) {
+    return t.id;
+  }));
+  
+  e.$emit("update:cherryCommitIds", filterCommitListId);
+  e.$emit("selection-change", filterCommitListId);
+}
 ```

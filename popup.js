@@ -237,6 +237,51 @@ class CoreController {
         handler,
       });
     }
+		
+		const onlyMyselfCheckbox = document.getElementById("only-myself-checkbox");
+	  if (onlyMyselfCheckbox) {
+			const handler = async () => {
+				const checked = onlyMyselfCheckbox.checked;
+				await this.commonHelper.updateLocalStorage("userInfo", "onlyMyself", checked);
+				chrome.runtime.sendMessage({ action: "BROADCAST_EXTENSION_CONFIG" }).catch(() => {});
+			}
+		  onlyMyselfCheckbox.addEventListener("change", handler);
+		  this.eventHandlers.push({
+			  element: onlyMyselfCheckbox,
+			  event: "change",
+			  handler,
+		  });
+	  }
+
+	  const filterMergeCommitCheckbox = document.getElementById("filter-merge-commit-checkbox");
+	  if (filterMergeCommitCheckbox) {
+			const handler = async () => {
+				const checked = filterMergeCommitCheckbox.checked;
+				await this.commonHelper.updateLocalStorage("userInfo", "filterMergeCommit", checked);
+				chrome.runtime.sendMessage({ action: "BROADCAST_EXTENSION_CONFIG" }).catch(() => {});
+			}
+		  filterMergeCommitCheckbox.addEventListener("change", handler);
+		  this.eventHandlers.push({
+			  element: filterMergeCommitCheckbox,
+			  event: "change",
+			  handler,
+		  });
+	  }
+
+	  const autoCheckRowCountInput = document.getElementById("auto-check-row-count");
+	  if (autoCheckRowCountInput) {
+			const handler = async () => {
+				const count = parseInt(autoCheckRowCountInput.value) || 0;
+				await this.commonHelper.updateLocalStorage("userInfo", "autoCheckRowCount", count);
+				chrome.runtime.sendMessage({ action: "BROADCAST_EXTENSION_CONFIG" }).catch(() => {});
+			}
+		  autoCheckRowCountInput.addEventListener("change", handler);
+		  this.eventHandlers.push({
+			  element: autoCheckRowCountInput,
+			  event: "change",
+			  handler,
+		  });
+	  }
   };
   gitlabAndListeners = () => {
     // 获取上周日报按钮
@@ -1191,38 +1236,50 @@ class DcsService {
    * 获取用户信息
    */
   fetchUserInfo = async ({ tab }) => {
-    const results = await chrome.scripting.executeScript({
+    const { editorType, devProjectPath } = await this.userInfoService.getUserInfo();
+    await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       world: "MAIN",
-      func: () => {
+      func: (_editorType, _devProjectPath) => {
         if (
           typeof window.$udp !== "undefined" &&
           typeof window.$udp.getUser === "function"
         ) {
-          return window.$udp.getUser();
+          const userInfo = window.$udp.getUser();
+          // 使用原生 textarea + execCommand 方式复制用户信息到剪贴板
+          const jsonStr = JSON.stringify(userInfo, null, 2);
+          const textarea = document.createElement("textarea");
+          textarea.value = jsonStr;
+          textarea.style.position = "fixed";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.focus();
+          textarea.select();
+          try {
+            const succeeded = document.execCommand("copy");
+            if (!succeeded) {
+              console.error("execCommand('copy') 执行失败");
+            }
+          } catch (err) {
+            console.error("使用 execCommand 复制到剪贴板失败:", err);
+          } finally {
+            document.body.removeChild(textarea);
+          }
+          if(!_editorType || !_devProjectPath) return;
+          // 创建临时链接元素并点击
+          const link = document.createElement("a");
+          link.href = `${_editorType}://file/${_devProjectPath}`;
+          link.target = "_self";
+          link.style.display = "none";
+          link.id = "editor-link";
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
         }
         return null;
       },
+      args: [editorType, devProjectPath],
     });
-    if (results?.[0]?.result) {
-      const userInfo = results?.[0]?.result;
-      const jsonStr = JSON.stringify(userInfo, null, 2);
-      await this.commonHelper.copyToClipboard(jsonStr);
-      this.commonHelper.showMessage("用户信息已复制到剪切板", "success");
-      setTimeout(async () => {
-        const { editorType, devProjectPath } =
-          await this.userInfoService.getUserInfo();
-        if (editorType && devProjectPath) {
-          const link = document.getElementById("editor-link");
-          if (link) {
-            link.href = `${editorType}://file/${devProjectPath}`;
-            link.click();
-          }
-        }
-      }, 1000);
-    } else {
-      this.commonHelper.showMessage("$udp对象不存在无法获取用户信息");
-    }
   };
 }
 class UserInfoService {
@@ -1242,6 +1299,9 @@ class UserInfoService {
       devProjectPath,
       clearExcludeBranches,
       commitHistoryBranch,
+      onlyMyself,
+      filterMergeCommit,
+      autoCheckRowCount,
     } = await this.getUserInfo();
     const emailInput = document.getElementById("email-input");
     const projectInput = document.getElementById("project-input");
@@ -1255,6 +1315,9 @@ class UserInfoService {
       "clear-exclude-branches-textarea"
     );
     const commitHistoryBranchInput = document.getElementById("commit-history-branch-input");
+    const onlyMyselfCheckbox = document.getElementById("only-myself-checkbox");
+    const filterMergeCommitCheckbox = document.getElementById("filter-merge-commit-checkbox");
+    const autoCheckRowCountInput = document.getElementById("auto-check-row-count");
     if (emailInput && email) {
       emailInput.value = email;
     }
@@ -1279,6 +1342,15 @@ class UserInfoService {
     if (commitHistoryBranchInput && commitHistoryBranch) {
       commitHistoryBranchInput.value = commitHistoryBranch;
     }
+    if (onlyMyselfCheckbox) {
+      onlyMyselfCheckbox.checked = onlyMyself === true;
+    }
+    if (filterMergeCommitCheckbox) {
+      filterMergeCommitCheckbox.checked = filterMergeCommit === true;
+    }
+    if (autoCheckRowCountInput) {
+      autoCheckRowCountInput.value = autoCheckRowCount || 0;
+    }
   };
   /**
    * 获取用户信息
@@ -1295,6 +1367,9 @@ class UserInfoService {
       devProjectPath,
       clearExcludeBranches,
       commitHistoryBranch,
+      onlyMyself,
+      filterMergeCommit,
+      autoCheckRowCount,
     } = result || {};
     return {
       email,
@@ -1305,6 +1380,9 @@ class UserInfoService {
       devProjectPath,
       clearExcludeBranches,
       commitHistoryBranch,
+      onlyMyself,
+      filterMergeCommit,
+      autoCheckRowCount,
     };
   };
 }

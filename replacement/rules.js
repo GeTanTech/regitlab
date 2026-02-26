@@ -19,6 +19,11 @@ function getUrlReplacements() {
         localPath: "replacement/js/main.5ece8d7d22.js",
         id: "main.5ece8d7d22.js",
       },
+	    {
+		    remoteUrl: "https://devops.cscec.com/assets/gitee/code/js/chunk-23b24f81.0b5151df.js",
+		    localPath: "replacement/js/chunk-23b24f81.0b5151df.js",
+		    id: "chunk-23b24f81.0b5151df.js",
+	    },
     ],
     css: [],
     json: [

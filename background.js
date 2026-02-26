@@ -108,18 +108,36 @@ async function initLocalStorage() {
   const defaultProject = "cip-economic/cost-react-1";
   const defaultCommitHistoryBranch = "uat";
   const defaultEditorType = "vscode";
+  const defaultOnlyMyself = false;
+  const defaultFilterMergeCommit = false;
+  const defaultAutoCheckRowCount = 0;
   const result = await chrome.storage.local.get("userInfo");
-  const { urlButtons = [], prompt = "", project = "", editorType = "", commitHistoryBranch = ""} = result.userInfo || {};
+  const { 
+    urlButtons = [], 
+    prompt = "", 
+    project = "", 
+    editorType = "", 
+    commitHistoryBranch = "",
+    onlyMyself,
+    filterMergeCommit,
+    autoCheckRowCount,
+  } = result.userInfo || {};
   let _prompt = "";
   let _project = "";
   let _urlButtons = [];
   let _editorType = "";
   let _commitHistoryBranch = "";
+  let _onlyMyself = null;
+  let _filterMergeCommit = null;
+  let _autoCheckRowCount = null;
   if (!prompt) _prompt = defaultPrompt;
   if (!project) _project = defaultProject;
   if (urlButtons.length === 0) _urlButtons = Object.values(config);
   if (!editorType) _editorType = defaultEditorType;
   if (!commitHistoryBranch) _commitHistoryBranch = defaultCommitHistoryBranch;
+  if (onlyMyself === undefined) _onlyMyself = defaultOnlyMyself;
+  if (filterMergeCommit === undefined) _filterMergeCommit = defaultFilterMergeCommit;
+  if (autoCheckRowCount === undefined) _autoCheckRowCount = defaultAutoCheckRowCount;
   await chrome.storage.local.set({
     userInfo: {
       ...(result.userInfo || {}),
@@ -128,6 +146,9 @@ async function initLocalStorage() {
       ...(_urlButtons.length > 0 ? { urlButtons: _urlButtons } : {}),
       ...(_editorType ? { editorType: _editorType } : {}),
       ...(_commitHistoryBranch ? { commitHistoryBranch: _commitHistoryBranch } : {}),
+      ...(_onlyMyself !== null ? { onlyMyself: _onlyMyself } : {}),
+      ...(_filterMergeCommit !== null ? { filterMergeCommit: _filterMergeCommit } : {}),
+      ...(_autoCheckRowCount !== null ? { autoCheckRowCount: _autoCheckRowCount } : {}),
     },
   });
 }
@@ -185,6 +206,31 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
       chrome.tabs.sendMessage(tabs[0].id, request, sendResponse);
     });
+    return true;
+  }
+  // 广播扩展配置到所有已打开的 GitLab 页面，使其 window.__EXTENSION_REGITLAB_CONFIG 立即更新
+  if (request.action === "BROADCAST_EXTENSION_CONFIG") {
+    (async () => {
+      const windows = await chrome.windows.getAll({ populate: true });
+      for (const window of windows) {
+        if (window.tabs) {
+          for (const tab of window.tabs) {
+            if (
+              tab.url && tab.url.includes("devops.cscec.com")
+            ) {
+              try {
+                await chrome.tabs.sendMessage(tab.id, {
+                  action: "SYNC_CONFIG",
+                });
+              } catch (e) {
+                // 该标签页可能未加载 content script 或未刷新，忽略
+              }
+            }
+          }
+        }
+      }
+      sendResponse?.({ ok: true });
+    })();
     return true;
   }
 });
