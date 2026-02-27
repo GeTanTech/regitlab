@@ -7,12 +7,14 @@
     "declarativeNetRequest",
     "declarativeNetRequestWithHostAccess",
     "storage",
-    "scripting"
+    "scripting",
+    "clipboardRead"
   ],
   "host_permissions": [
     "https://devops.cscec.com/*",
     "https://dcs-uat-gray.cscec.com/*",
-    "https://gemini-api.getan.edu.kg/*"
+    "https://gemini-api.getan.edu.kg/*",
+    "http://localhost/*"
   ],
   "background": {
     "service_worker": "background.js"

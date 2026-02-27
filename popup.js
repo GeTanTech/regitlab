@@ -59,6 +59,22 @@ class CoreController {
         handler,
       });
     }
+    // 本地 localhost 页面 LocalStorage 注入按钮
+    const injectLocalhostStorageBtn = document.getElementById(
+      "inject-localhost-storage-btn"
+    );
+    if (injectLocalhostStorageBtn) {
+      const handler = this.wrapHandler(
+        this.dcsService.injectLocalhostEnterpriseUser,
+        []
+      );
+      injectLocalhostStorageBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: injectLocalhostStorageBtn,
+        event: "click",
+        handler,
+      });
+    }
   };
   settingsAndListeners = () => {
     // 监听 email 和 project 输入变化
@@ -1280,6 +1296,43 @@ class DcsService {
       },
       args: [editorType, devProjectPath],
     });
+    if(!editorType || !devProjectPath) {
+      this.commonHelper.showMessage("复制用户信息成功，请在 http://localhost 页面使用此功能","success");
+      this.commonHelper.closeWindow();
+    }
+  };
+  /**
+   * 为 http://localhost 页面注入 UDP_DEV_USER 到 localStorage
+   */
+  injectLocalhostEnterpriseUser = async ({ tab }) => {
+    const url = tab?.url || "";
+    if (!url.startsWith("http://localhost")) {
+      this.commonHelper.showMessage("请在 http://localhost 页面使用此功能");
+      return;
+    }
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+      const value = clipboardText?.trim();
+      if (!value) {
+        this.commonHelper.showMessage("剪切板为空，请先在 DCS 页点击复制用户信息");
+        return;
+      }
+      await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        world: "MAIN",
+        func: (userJson) => {
+          window.localStorage.setItem("UDP_DEV_USER", userJson);
+        },
+        args: [value],
+      });
+      this.commonHelper.showMessage(
+        "已为 http://localhost 页面注入 UDP_DEV_USER",
+        "success"
+      );
+    } catch (error) {
+      console.error(error);
+      this.commonHelper.showMessage("注入 localStorage 失败");
+    }
   };
 }
 class UserInfoService {
