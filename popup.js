@@ -1314,6 +1314,7 @@ class DcsService {
         "已为 http://localhost 页面注入 UDP_DEV_USER",
         "success"
       );
+      this.commonHelper.reloadPage();
     } catch (error) {
       console.error(error);
       this.commonHelper.showMessage("注入 localStorage 失败");
