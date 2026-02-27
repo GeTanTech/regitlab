@@ -283,21 +283,6 @@ class CoreController {
 			  handler,
 		  });
 	  }
-
-	  const autoCheckRowCountInput = document.getElementById("auto-check-row-count");
-	  if (autoCheckRowCountInput) {
-			const handler = async () => {
-				const count = parseInt(autoCheckRowCountInput.value) || 0;
-				await this.commonHelper.updateLocalStorage("userInfo", "autoCheckRowCount", count);
-				chrome.runtime.sendMessage({ action: "BROADCAST_EXTENSION_CONFIG" }).catch(() => {});
-			}
-		  autoCheckRowCountInput.addEventListener("change", handler);
-		  this.eventHandlers.push({
-			  element: autoCheckRowCountInput,
-			  event: "change",
-			  handler,
-		  });
-	  }
   };
   gitlabAndListeners = () => {
     // 获取上周日报按钮
@@ -1354,7 +1339,6 @@ class UserInfoService {
       commitHistoryBranch,
       onlyMyself,
       filterMergeCommit,
-      autoCheckRowCount,
     } = await this.getUserInfo();
     const emailInput = document.getElementById("email-input");
     const projectInput = document.getElementById("project-input");
@@ -1370,7 +1354,6 @@ class UserInfoService {
     const commitHistoryBranchInput = document.getElementById("commit-history-branch-input");
     const onlyMyselfCheckbox = document.getElementById("only-myself-checkbox");
     const filterMergeCommitCheckbox = document.getElementById("filter-merge-commit-checkbox");
-    const autoCheckRowCountInput = document.getElementById("auto-check-row-count");
     if (emailInput && email) {
       emailInput.value = email;
     }
@@ -1401,9 +1384,6 @@ class UserInfoService {
     if (filterMergeCommitCheckbox) {
       filterMergeCommitCheckbox.checked = filterMergeCommit === true;
     }
-    if (autoCheckRowCountInput) {
-      autoCheckRowCountInput.value = autoCheckRowCount || 0;
-    }
   };
   /**
    * 获取用户信息
@@ -1422,7 +1402,6 @@ class UserInfoService {
       commitHistoryBranch,
       onlyMyself,
       filterMergeCommit,
-      autoCheckRowCount,
     } = result || {};
     return {
       email,
@@ -1435,7 +1414,6 @@ class UserInfoService {
       commitHistoryBranch,
       onlyMyself,
       filterMergeCommit,
-      autoCheckRowCount,
     };
   };
 }

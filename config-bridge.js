@@ -23,7 +23,6 @@ function injectConfigListener() {
 
 function updateConfig(userInfo = {}) {
   const config = {
-    autoCheckRowCount: userInfo.autoCheckRowCount || 0,
     onlyMyself: userInfo.onlyMyself === true,
     filterMergeCommit: userInfo.filterMergeCommit === true,
     email: userInfo.email || "",

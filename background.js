@@ -110,7 +110,6 @@ async function initLocalStorage() {
   const defaultEditorType = "vscode";
   const defaultOnlyMyself = false;
   const defaultFilterMergeCommit = false;
-  const defaultAutoCheckRowCount = 0;
   const result = await chrome.storage.local.get("userInfo");
   const { 
     urlButtons = [], 
@@ -120,7 +119,6 @@ async function initLocalStorage() {
     commitHistoryBranch = "",
     onlyMyself,
     filterMergeCommit,
-    autoCheckRowCount,
   } = result.userInfo || {};
   let _prompt = "";
   let _project = "";
@@ -129,7 +127,6 @@ async function initLocalStorage() {
   let _commitHistoryBranch = "";
   let _onlyMyself = null;
   let _filterMergeCommit = null;
-  let _autoCheckRowCount = null;
   if (!prompt) _prompt = defaultPrompt;
   if (!project) _project = defaultProject;
   if (urlButtons.length === 0) _urlButtons = Object.values(config);
@@ -137,7 +134,6 @@ async function initLocalStorage() {
   if (!commitHistoryBranch) _commitHistoryBranch = defaultCommitHistoryBranch;
   if (onlyMyself === undefined) _onlyMyself = defaultOnlyMyself;
   if (filterMergeCommit === undefined) _filterMergeCommit = defaultFilterMergeCommit;
-  if (autoCheckRowCount === undefined) _autoCheckRowCount = defaultAutoCheckRowCount;
   await chrome.storage.local.set({
     userInfo: {
       ...(result.userInfo || {}),
@@ -148,7 +144,6 @@ async function initLocalStorage() {
       ...(_commitHistoryBranch ? { commitHistoryBranch: _commitHistoryBranch } : {}),
       ...(_onlyMyself !== null ? { onlyMyself: _onlyMyself } : {}),
       ...(_filterMergeCommit !== null ? { filterMergeCommit: _filterMergeCommit } : {}),
-      ...(_autoCheckRowCount !== null ? { autoCheckRowCount: _autoCheckRowCount } : {}),
     },
   });
 }

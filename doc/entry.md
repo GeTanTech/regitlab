@@ -168,24 +168,3 @@ loadCommits: function(t) {
   })
 }
 ```
-
-默认选中前几个，也是在以上的基础上在结尾补充以下代码
-
-```js | pure
-if(is_cherry_pick_page && window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount && Number(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount) > 0) {
-  const filteredList = e.commitsList.filter((item) => {
-    return !item.merge_commit && !item.target_branch_merged && item.display_email === window?.__EXTENSION_REGITLAB_CONFIG?.email;
-  });
-  // 只对前N行设置勾选状态
-  const rowsToCheck = filteredList.slice(0, Number(window?.__EXTENSION_REGITLAB_CONFIG?.autoCheckRowCount));
-  rowsToCheck.forEach((item) => {
-    item.$v_checked = true;
-  });
-  const filterCommitListId = rowsToCheck.map((function (t) {
-    return t.id;
-  }));
-  
-  e.$emit("update:cherryCommitIds", filterCommitListId);
-  e.$emit("selection-change", filterCommitListId);
-}
-```
