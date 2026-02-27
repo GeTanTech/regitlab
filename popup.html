@@ -693,7 +693,7 @@
               🔍 $udp.getUser
             </button>
             <button id="inject-localhost-storage-btn" class="btn btn-outline">
-              💾 注入 udp_dev_user
+              💾 同步 udp_dev_user
             </button>
           </div>
         </div>
@@ -792,33 +792,55 @@
       <div class="settings-content" spellcheck="false">
         <div class="card">
           <div class="card-header">
-            <span class="card-title">📝 编辑器配置</span>
+            <span class="card-title">🔗 自定义快捷跳转</span>
           </div>
-          <div class="form-group">
-            <label>编辑器类型</label>
-            <input
-              type="text"
-              id="editor-type-input"
-              placeholder="例如: cursor, vscode"
-              class="input-field"
-            />
+          <div class="custom-link-row">
+            <div class="form-group flex-grow">
+              <label>按钮名称</label>
+              <input
+                type="text"
+                id="btn-name-input"
+                placeholder="如：灰度"
+                class="input-field"
+              />
+            </div>
+            <div class="form-group flex-grow" style="flex: 2">
+              <label>跳转链接</label>
+              <input
+                type="text"
+                id="url-input"
+                placeholder="https://..."
+                class="input-field"
+              />
+            </div>
           </div>
-          <div class="form-group">
-            <label>开发项目路径</label>
-            <input
-              type="text"
-              id="dev-project-path-input"
-              placeholder="绝对路径: Mac移除前面斜杠，Win不做处理"
-              class="input-field"
-            />
-            <div class="helper-text">
-              Win:<span>D:/project/common-react/src/app.tsx:454:0</span>
-            </div>
-            <div class="helper-text">
-              Mac:<span
-                >Users/username/project/common-react/src/app.tsx:454:0</span
-              >
-            </div>
+          <button
+            id="add-menu-button"
+            class="btn btn-primary"
+            style="width: 100%; margin-top: 8px"
+          >
+            + 添加跳转按钮
+          </button>
+        </div>
+
+        <!-- 显示设置 -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">👁️ 显示设置</span>
+          </div>
+          <div class="switch-wrapper">
+            <label class="switch-label">仅展示自己的提交</label>
+            <label class="toggle-switch">
+              <input id="only-myself-checkbox" type="checkbox"/>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="switch-wrapper">
+            <label class="switch-label">过滤已合并节点记录</label>
+            <label class="toggle-switch">
+              <input id="filter-merge-commit-checkbox" type="checkbox"/>
+              <span class="toggle-slider"></span>
+            </label>
           </div>
         </div>
 
@@ -894,55 +916,33 @@
 
         <div class="card">
           <div class="card-header">
-            <span class="card-title">🔗 自定义快捷跳转</span>
+            <span class="card-title">📝 编辑器配置</span>
           </div>
-          <div class="custom-link-row">
-            <div class="form-group flex-grow">
-              <label>按钮名称</label>
-              <input
-                type="text"
-                id="btn-name-input"
-                placeholder="如：灰度"
-                class="input-field"
-              />
+          <div class="form-group">
+            <label>编辑器类型</label>
+            <input
+              type="text"
+              id="editor-type-input"
+              placeholder="例如: cursor, vscode"
+              class="input-field"
+            />
+          </div>
+          <div class="form-group">
+            <label>开发项目路径</label>
+            <input
+              type="text"
+              id="dev-project-path-input"
+              placeholder="绝对路径: Mac移除前面斜杠，Win不做处理"
+              class="input-field"
+            />
+            <div class="helper-text">
+              Win:<span>D:/project/common-react/src/app.tsx:454:0</span>
             </div>
-            <div class="form-group flex-grow" style="flex: 2">
-              <label>跳转链接</label>
-              <input
-                type="text"
-                id="url-input"
-                placeholder="https://..."
-                class="input-field"
-              />
+            <div class="helper-text">
+              Mac:<span
+                >Users/username/project/common-react/src/app.tsx:454:0</span
+              >
             </div>
-          </div>
-          <button
-            id="add-menu-button"
-            class="btn btn-primary"
-            style="width: 100%; margin-top: 8px"
-          >
-            + 添加跳转按钮
-          </button>
-        </div>
-
-        <!-- 显示设置 -->
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">👁️ 显示设置</span>
-          </div>
-          <div class="switch-wrapper">
-            <label class="switch-label">仅展示自己的提交</label>
-            <label class="toggle-switch">
-              <input id="only-myself-checkbox" type="checkbox"/>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="switch-wrapper">
-            <label class="switch-label">过滤已合并节点记录</label>
-            <label class="toggle-switch">
-              <input id="filter-merge-commit-checkbox" type="checkbox"/>
-              <span class="toggle-slider"></span>
-            </label>
           </div>
         </div>
       </div>
