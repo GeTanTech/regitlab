@@ -55,7 +55,7 @@ async function build() {
   }
   ensureDir(outputDir);
 
-  const jsFiles = ['background.js', 'popup.js', 'replacement/rules.js', 'content.js'];
+  const jsFiles = ['background.js', 'popup.js', 'replacement/rules.js', 'content.js', 'config-bridge.js', 'config-injector.js'];
   
   for (const file of jsFiles) {
     const srcPath = path.join(__dirname, file);
