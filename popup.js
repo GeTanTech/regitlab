@@ -1279,7 +1279,10 @@ class DcsService {
         }
         return null;
       },
-      args: [editorType, devProjectPath],
+      args: [
+        editorType != null ? String(editorType) : "",
+        devProjectPath != null ? String(devProjectPath) : "",
+      ],
     });
     if(!editorType || !devProjectPath) {
       this.commonHelper.showMessage("复制用户信息成功，请在 http://localhost 页面使用此功能","success");
