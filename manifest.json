@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "regitlab",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "gitlab分支快速选择、创建pull Request自动化、一键生成日志",
   "permissions": [
     "declarativeNetRequest",
