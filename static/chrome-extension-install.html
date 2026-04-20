@@ -60,7 +60,7 @@
         <li><strong>GitLab 邮箱</strong>：用于查询您的提交记录。（必填：如果这个邮箱不存在，则无法查询提交记录，无法配合仅展示自己的提交功能）</li>
         <li><strong>常用项目路径 (Project Path)</strong>：Group/Project 格式，如 <code>cip-economic/cost-react-1</code>，结合邮箱获取该项目下的提交记录。</li>
         <li><strong>提交记录分支</strong>：查询提交记录时使用的分支，如 <code>uat</code>。（可不填则使用默认分支）</li>
-        <li><strong>Gemini API Key</strong>：用于调用 Gemini 自动生成日报内容。（可不填，则仅展示提交记录）</li>
+        <li><strong>API Key</strong>：用于调用 AI 自动生成日报内容。（可不填，则仅展示提交记录）</li>
         <li><strong>日报生成 Prompt 模板</strong>：控制生成格式与风格，最多 200 字；会自动拼接提交记录，无需在模板里重复写。（可不填则使用默认提示词）</li>
     </ul>
 
@@ -80,7 +80,7 @@
     <p>使用插件可以快速创建 Pull Request，自动填充相关信息，随后可以快速接受 Pull Request，简化接受流程。</p>
 
     <h3>2.3 生成本周/上周日报</h3>
-    <p>在插件弹窗「GitLab Workflow」中点击「📅 本周日报」或「⏮ 上周日报」，会根据配置的邮箱与项目路径自动查询提交记录并展示；若已配置 Gemini API Key 与提示词，会进一步调用 Gemini 生成日报内容，支持一键复制。</p>
+    <p>在插件弹窗「GitLab Workflow」中点击「📅 本周日报」或「⏮ 上周日报」，会根据配置的邮箱与项目路径自动查询提交记录并展示；若已配置 API Key 与提示词，会进一步调用 AI 生成日报内容，支持一键复制。</p>
 
     <h3>2.4 运行部署流水线</h3>
     <p>在 GitLab 项目页面，可通过插件快速触发部署流水线。当前支持：<strong>成本</strong>、<strong>公共</strong>、<strong>目标</strong>、<strong>收入</strong> 四类流水线，每类均有 GRAY（灰度）与 UAT 环境，共 8 个一键触发按钮。</p>
@@ -111,7 +111,7 @@
     <ul>
         <li>插件在以下域名下工作：<code>https://devops.cscec.com/*</code>、<code>https://dcs-uat-gray.cscec.com/*</code>；「同步 udp_dev_user」功能还会在 <code>http://localhost/*</code> 下注入本地存储</li>
         <li>所有配置数据均存储在浏览器本地，不会上传到任何服务器</li>
-        <li>使用 Gemini API 功能时，数据会发送到 Gemini 服务，请确保您已妥善保管 API Key</li>
+        <li>使用 AI 功能时，数据会发送到 AI 服务，请确保您已妥善保管 API Key</li>
         <li>卸载插件时，所有本地存储的数据会被清除</li>
     </ul>
 
@@ -121,7 +121,7 @@
     <p>A: 请确保您访问的是支持的 GitLab 域名，并且已正确配置邮箱和项目名称。</p>
 
     <h3>Q: 周报生成功能无法使用？</h3>
-    <p>A: 请检查是否已正确配置 Gemini API Key，并确保网络连接正常。</p>
+    <p>A: 请检查是否已正确配置 API Key，并确保网络连接正常。</p>
 
     <h3>Q: 如何清除所有配置？</h3>
     <p>A: 可以在插件设置页面手动删除各项配置，或卸载插件后重新安装。</p>

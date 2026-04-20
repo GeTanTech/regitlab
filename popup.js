@@ -30,7 +30,7 @@ class CoreController {
         }
         if (checkConfig?.includes("gemini")) {
           if (!geminiKey || !prompt) {
-            this.commonHelper.showMessage("请先配置Gemini API Key和提示词");
+            this.commonHelper.showMessage("请先配置API Key和提示词");
             return;
           }
         }
@@ -1216,9 +1216,9 @@ class GitlabService {
         await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
         if (outputDiv)
           outputDiv.textContent =
-            "未配置 Gemini API Key，已仅获取原始 Commit 记录并复制到剪切板。";
+            "未配置 API Key，已仅获取原始 Commit 记录并复制到剪切板。";
         this.commonHelper.showMessage(
-          "未配置Gemini API Key或提示词，已复制提交记录到剪切板",
+          "未配置API Key或提示词，已复制提交记录到剪切板",
           "success"
         );
       }
@@ -1510,8 +1510,8 @@ class GeminiService {
     this.baseUrl = `https://gemini-api.getan.edu.kg/v1beta/models/${this.model}`;
   }
   /**
-   * 调用 Gemini 生成周报，普通方式
-   * @param {string} apiKey - Gemini API Key
+   * 调用 api 生成周报，普通方式
+   * @param {string} apiKey - API Key
    * @param {Array} commits - 提交记录列表
    * @returns {Promise<string>} - AI 生成的文本
    */
@@ -1548,8 +1548,8 @@ class GeminiService {
     return generatedText || "AI 未返回有效内容";
   };
   /**
-   * 调用 Gemini 生成周报 (流式)
-   * @param {string} apiKey - Gemini API Key
+   * 调用 api 生成周报 (流式)
+   * @param {string} apiKey - API Key
    * @param {string} commits - 提交记录
    * @param {string} prompt - 提示词
    * @param {function} onUpdate - 回调函数，每收到一段文字调用一次 (text) => void
@@ -1620,7 +1620,7 @@ class GeminiService {
 class ZhiPuService {
   constructor() {
     // 使用更常见且额度友好的默认模型
-    this.model = "glm-4-flash";
+    this.model = "glm-5";
     this.baseUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
   }
 
