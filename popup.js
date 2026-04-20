@@ -96,12 +96,14 @@ class CoreController {
       });
     }
     if (projectInput) {
-      const handler = () => {
-        this.commonHelper.updateLocalStorage(
+      const handler = async () => {
+        const project = projectInput.value.trim();
+        await this.commonHelper.updateLocalStorage(
           "userInfo",
           "project",
-          projectInput.value.trim()
+          project
         );
+        await this.urlButtonService.syncCherryPickButtonUrl(project);
       };
       projectInput.addEventListener("input", handler);
       this.eventHandlers.push({
@@ -798,6 +800,40 @@ class UrlButtonService {
   constructor() {
     this.commonHelper = new CommonHelper();
   }
+  isValidProjectPath = (project) => {
+    return /^[^/\s]+\/[^/\s]+$/.test(project);
+  };
+  buildCherryPickUrl = (project) => {
+    return `${this.commonHelper.gitlabDomain}/osc/_source/osc/${project}/-/cherry_pick/new`;
+  };
+  syncCherryPickButtonUrl = async (project) => {
+    if (!this.isValidProjectPath(project)) return;
+    const buttons =
+      (await this.commonHelper.getLocalStorage("userInfo", "urlButtons")) || [];
+    if (buttons.length === 0) return;
+    const targetUrl = this.buildCherryPickUrl(project);
+    let hasUpdated = false;
+    const nextButtons = buttons.map((item) => {
+      if (item?.btn !== "cherry_pick" || item.default !== true) {
+        return item;
+      }
+      if (item.url === targetUrl) {
+        return item;
+      }
+      hasUpdated = true;
+      return {
+        ...item,
+        url: targetUrl,
+      };
+    });
+    if (!hasUpdated) return;
+    await this.commonHelper.updateLocalStorage(
+      "userInfo",
+      "urlButtons",
+      nextButtons
+    );
+    await this.loadUrlButtons();
+  };
   /**
    * 加载URL按钮菜单
    */
