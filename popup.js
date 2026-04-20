@@ -508,6 +508,44 @@ class CoreController {
         handler,
       });
     }
+    // 运行成本gray后端流水线按钮
+    const costGrayBtnBackend = document.getElementById("run-pipeline-btn-cost-gray-backend");
+    if (costGrayBtnBackend) {
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () =>
+        wrappedHandler([
+          "cost-backend",
+          "gray",
+          "run-pipeline-btn-cost-gray-backend",
+        ]);
+      costGrayBtnBackend.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: costGrayBtnBackend,
+        event: "click",
+        handler,
+      });
+    }
+    // 运行成本uat后端流水线按钮
+    const costUatBtnBackend = document.getElementById("run-pipeline-btn-cost-uat-backend");
+    if (costUatBtnBackend) {
+      const wrappedHandler = this.wrapHandler(
+        this.pipelineService.runPipeline,
+        ["devops"],
+        []
+      );
+      const handler = () =>
+        wrappedHandler([
+          "cost-backend",
+          "uat",
+          "run-pipeline-btn-cost-uat-backend",
+        ]);
+      costUatBtnBackend.addEventListener("click", handler);
+      this.eventHandlers.push({ element: costUatBtnBackend, event: "click", handler });
+    }
   };
   removeEventListener = () => {
     this.eventHandlers.forEach(({ element, event, handler }) => {
@@ -1211,6 +1249,16 @@ class PipelineService {
         uat: {
           branch: "stable-uat",
           pipelineConfId: 876,
+        },
+      },
+      ["cost-backend"]: {
+        gray: {
+          branch: "uat",
+          pipelineConfId: 5954,
+        },
+        uat: {
+          branch: "stable-uat",
+          pipelineConfId: 5897,
         },
       },
       public: {

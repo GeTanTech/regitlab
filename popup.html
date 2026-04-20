@@ -236,7 +236,7 @@
 
       .pipeline-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 8px;
       }
 
@@ -740,31 +740,42 @@
         </div>
 
         <div class="card">
-          <div class="section-title">部署流水线 (Deploy)</div>
+          <div class="section-title">部署流水线 (Frontend Deploy)</div>
           <div class="pipeline-grid">
             <button id="run-pipeline-btn-cost-gray" class="pipeline-btn gray">
-              成本 <span class="tag">GRAY</span>
+              成本 <span class="tag">G</span>
             </button>
             <button id="run-pipeline-btn-cost-uat" class="pipeline-btn uat">
-              成本 <span class="tag">UAT</span>
+              成本 <span class="tag">U</span>
             </button>
             <button id="run-pipeline-btn-public-gray" class="pipeline-btn gray">
-              公共 <span class="tag">GRAY</span>
+              公共 <span class="tag">G</span>
             </button>
             <button id="run-pipeline-btn-public-uat" class="pipeline-btn uat">
-              公共 <span class="tag">UAT</span>
+              公共 <span class="tag">U</span>
             </button>
             <button id="run-pipeline-btn-target-gray" class="pipeline-btn gray">
-              目标 <span class="tag">GRAY</span>
+              目标 <span class="tag">G</span>
             </button>
             <button id="run-pipeline-btn-target-uat" class="pipeline-btn uat">
-              目标 <span class="tag">UAT</span>
+              目标 <span class="tag">U</span>
             </button>
             <button id="run-pipeline-btn-income-gray" class="pipeline-btn gray">
-              收入 <span class="tag">GRAY</span>
+              收入 <span class="tag">G</span>
             </button>
             <button id="run-pipeline-btn-income-uat" class="pipeline-btn uat">
-              收入 <span class="tag">UAT</span>
+              收入 <span class="tag">U</span>
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="section-title">部署流水线 (Backend Deploy)</div>
+          <div class="pipeline-grid">
+            <button id="run-pipeline-btn-cost-gray-backend" class="pipeline-btn gray">
+              成本 <span class="tag">G</span>
+            </button>
+            <button id="run-pipeline-btn-cost-uat-backend" class="pipeline-btn uat">
+              成本 <span class="tag">U</span>
             </button>
           </div>
         </div>
