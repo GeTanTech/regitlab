@@ -519,7 +519,10 @@ class CommonHelper {
     this.gitlabDomain = "https://devops.cscec.com";
     // 域名白名单
     this.whiteList = {
-      gray: ["https://dcs-uat-gray.cscec.com"],
+      gray: [
+        "https://dcs-uat-gray.cscec.com",
+        "https://dcs-uat.cscec.com",
+      ],
       devops: [this.gitlabDomain],
     };
   }
@@ -1286,19 +1289,14 @@ class DcsService {
       ],
     });
     if(!editorType || !devProjectPath) {
-      this.commonHelper.showMessage("复制用户信息成功，请在 http://localhost 页面使用此功能","success");
+      this.commonHelper.showMessage("复制用户信息成功，请在【开发】页面使用此功能","success");
       this.commonHelper.closeWindow();
     }
   };
   /**
-   * 为 http://localhost 页面注入 UDP_DEV_USER 到 localStorage
+   *  页面注入 UDP_DEV_USER 到 localStorage
    */
   injectLocalhostEnterpriseUser = async ({ tab }) => {
-    const url = tab?.url || "";
-    if (!url.startsWith("http://localhost")) {
-      this.commonHelper.showMessage("请在 http://localhost 页面使用此功能");
-      return;
-    }
     try {
       const clipboardText = await navigator.clipboard.readText();
       const value = clipboardText?.trim();
