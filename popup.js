@@ -1096,6 +1096,10 @@ class PipelineService {
           branch: "stable-uat",
           pipelineConfId: 876,
         },
+        "zgy-uat": {
+          branch: "stable-uat",
+          pipelineConfId: 4194,
+        }
       },
       ["cost-backend"]: {
         gray: {
@@ -1145,14 +1149,16 @@ class PipelineService {
   };
 
   getPipelineRunConfigByButtonId = (buttonId) => {
-    const idPrefix = "run-pipeline-btn-";
-    if (!buttonId?.startsWith(idPrefix)) return null;
-    const payload = buttonId.slice(idPrefix.length);
-    const branch = ["gray", "uat"].find((env) => payload.endsWith(`-${env}`));
-    if (!branch) return null;
-    const type = payload.slice(0, -(branch.length + 1));
-    if (!type || !this.pipelineConfig[type]?.[branch]) return null;
-    return [type, branch, this.buildPipelineButtonId(type, branch)];
+    if (!buttonId) return null;
+    for (const [type, branchMap] of Object.entries(this.pipelineConfig)) {
+      for (const branch of Object.keys(branchMap)) {
+        const currentButtonId = this.buildPipelineButtonId(type, branch);
+        if (currentButtonId === buttonId) {
+          return [type, branch, currentButtonId];
+        }
+      }
+    }
+    return null;
   };
 
   runPipeline = async (_, config) => {
