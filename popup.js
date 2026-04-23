@@ -370,182 +370,28 @@ class CoreController {
     }
   };
   pipelineAndListeners = () => {
-    // 运行成本gray流水线按钮
-    const costGrayBtn = document.getElementById("run-pipeline-btn-cost-gray");
-    if (costGrayBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler(["cost", "gray", "run-pipeline-btn-cost-gray"]);
-      costGrayBtn.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: costGrayBtn,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行成本uat流水线按钮
-    const costUatBtn = document.getElementById("run-pipeline-btn-cost-uat");
-    if (costUatBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler(["cost", "uat", "run-pipeline-btn-cost-uat"]);
-      costUatBtn.addEventListener("click", handler);
-      this.eventHandlers.push({ element: costUatBtn, event: "click", handler });
-    }
-    // 运行公共gray流水线按钮
-    const publicGrayBtn = document.getElementById(
-      "run-pipeline-btn-public-gray"
+    const container = document.querySelector(".container");
+    if (!container) return;
+    const wrappedHandler = this.wrapHandler(
+      this.pipelineService.runPipeline,
+      ["devops"],
+      []
     );
-    if (publicGrayBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
+    const handler = (event) => {
+      const button = event.target.closest('button[id^="run-pipeline-btn-"]');
+      if (!button || !container.contains(button)) return;
+      const config = this.pipelineService.getPipelineRunConfigByButtonId(
+        button.id
       );
-      const handler = () =>
-        wrappedHandler(["public", "gray", "run-pipeline-btn-public-gray"]);
-      publicGrayBtn.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: publicGrayBtn,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行公共uat流水线按钮
-    const publicUatBtn = document.getElementById("run-pipeline-btn-public-uat");
-    if (publicUatBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler(["public", "uat", "run-pipeline-btn-public-uat"]);
-      publicUatBtn.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: publicUatBtn,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行目标gray流水线按钮
-    const targetGrayBtn = document.getElementById(
-      "run-pipeline-btn-target-gray"
-    );
-    if (targetGrayBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler(["target", "gray", "run-pipeline-btn-target-gray"]);
-      targetGrayBtn.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: targetGrayBtn,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行目标uat流水线按钮
-    const targetUatBtn = document.getElementById("run-pipeline-btn-target-uat");
-    if (targetUatBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler(["target", "uat", "run-pipeline-btn-target-uat"]);
-      targetUatBtn.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: targetUatBtn,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行收入gray流水线按钮
-    const incomeGrayBtn = document.getElementById(
-      "run-pipeline-btn-income-gray"
-    );
-    if (incomeGrayBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler(["income", "gray", "run-pipeline-btn-income-gray"]);
-      incomeGrayBtn.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: incomeGrayBtn,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行收入uat流水线按钮
-    const incomeUatBtn = document.getElementById("run-pipeline-btn-income-uat");
-    if (incomeUatBtn) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler(["income", "uat", "run-pipeline-btn-income-uat"]);
-      incomeUatBtn.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: incomeUatBtn,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行成本gray后端流水线按钮
-    const costGrayBtnBackend = document.getElementById("run-pipeline-btn-cost-gray-backend");
-    if (costGrayBtnBackend) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler([
-          "cost-backend",
-          "gray",
-          "run-pipeline-btn-cost-gray-backend",
-        ]);
-      costGrayBtnBackend.addEventListener("click", handler);
-      this.eventHandlers.push({
-        element: costGrayBtnBackend,
-        event: "click",
-        handler,
-      });
-    }
-    // 运行成本uat后端流水线按钮
-    const costUatBtnBackend = document.getElementById("run-pipeline-btn-cost-uat-backend");
-    if (costUatBtnBackend) {
-      const wrappedHandler = this.wrapHandler(
-        this.pipelineService.runPipeline,
-        ["devops"],
-        []
-      );
-      const handler = () =>
-        wrappedHandler([
-          "cost-backend",
-          "uat",
-          "run-pipeline-btn-cost-uat-backend",
-        ]);
-      costUatBtnBackend.addEventListener("click", handler);
-      this.eventHandlers.push({ element: costUatBtnBackend, event: "click", handler });
-    }
+      if (!config) return;
+      wrappedHandler(config);
+    };
+    container.addEventListener("click", handler);
+    this.eventHandlers.push({
+      element: container,
+      event: "click",
+      handler,
+    });
   };
   removeEventListener = () => {
     this.eventHandlers.forEach(({ element, event, handler }) => {
@@ -1293,6 +1139,21 @@ class PipelineService {
       },
     };
   }
+
+  buildPipelineButtonId = (type, branch) => {
+    return `run-pipeline-btn-${type}-${branch}`;
+  };
+
+  getPipelineRunConfigByButtonId = (buttonId) => {
+    const idPrefix = "run-pipeline-btn-";
+    if (!buttonId?.startsWith(idPrefix)) return null;
+    const payload = buttonId.slice(idPrefix.length);
+    const branch = ["gray", "uat"].find((env) => payload.endsWith(`-${env}`));
+    if (!branch) return null;
+    const type = payload.slice(0, -(branch.length + 1));
+    if (!type || !this.pipelineConfig[type]?.[branch]) return null;
+    return [type, branch, this.buildPipelineButtonId(type, branch)];
+  };
 
   runPipeline = async (_, config) => {
     const [type, branch, buttonId] = config;
