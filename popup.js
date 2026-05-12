@@ -21,16 +21,10 @@ class CoreController {
         );
         if (!isInWhiteList) return;
         const userInfo = await this.userInfoService.getUserInfo();
-        const { email, project, geminiKey, prompt } = userInfo || {};
+        const { email, project} = userInfo || {};
         if (checkConfig?.includes("gitlab")) {
           if (!email || !project) {
             this.commonHelper.showMessage("请先配置邮箱和项目");
-            return;
-          }
-        }
-        if (checkConfig?.includes("gemini")) {
-          if (!geminiKey || !prompt) {
-            this.commonHelper.showMessage("请先配置API Key和提示词");
             return;
           }
         }
@@ -112,20 +106,20 @@ class CoreController {
         handler,
       });
     }
-    // 监听gemini-key-input和prompt-input输入变化
-    const geminiKeyInput = document.getElementById("gemini-key-input");
+    // 监听ai-key-input和prompt-input输入变化
+    const aiKeyInput = document.getElementById("ai-key-input");
     const promptInput = document.getElementById("prompt-input");
-    if (geminiKeyInput) {
+    if (aiKeyInput) {
       const handler = () => {
         this.commonHelper.updateLocalStorage(
           "userInfo",
-          "geminiKey",
-          geminiKeyInput.value.trim()
+          "aiKey",
+          aiKeyInput.value.trim()
         );
       };
-      geminiKeyInput.addEventListener("input", handler);
+      aiKeyInput.addEventListener("input", handler);
       this.eventHandlers.push({
-        element: geminiKeyInput,
+        element: aiKeyInput,
         event: "input",
         handler,
       });
@@ -838,7 +832,6 @@ class GitlabService {
   constructor() {
     this.commonHelper = new CommonHelper();
     this.userInfoService = new UserInfoService();
-    this.geminiService = new GeminiService();
     this.zhiPuService = new ZhiPuService();
   }
   /**
@@ -1018,46 +1011,33 @@ class GitlabService {
         this.commonHelper.setButtonLoading(buttonId, false);
         return;
       }
-      const { geminiKey, prompt } = await this.userInfoService.getUserInfo();
-      if (geminiKey && prompt) {
+      const { aiKey, prompt } = await this.userInfoService.getUserInfo();
+      if (aiKey && prompt) {
         if (outputDiv)
           outputDiv.textContent = "成功获取提交记录...\n正在生成 AI 日报...\n";
-        // 调用流式生成接口
-        await this.zhiPuService.generateReportStream(
-          geminiKey,
-          JSON.stringify(commitList),
-          prompt,
-          (currentText) => {
-            // 实时更新回调
-            if (outputDiv) {
-              outputDiv.textContent = currentText;
-              // 自动滚动到底部
-              outputDiv.scrollTop = outputDiv.scrollHeight;
-            }
-          },
-          (fullText) => {
-            // 完成回调
-            this.commonHelper.showMessage("日报生成完成，点击复制", "success");
-            this.commonHelper.setButtonLoading(buttonId, false);
-            // 显示复制按钮
-            if (copyBtn) {
-              copyBtn.style.display = "block";
-              copyBtn.onclick = () => {
-                this.commonHelper.copyToClipboard(fullText);
-                this.commonHelper.showMessage("已复制到剪切板", "success");
-                this.commonHelper.closeWindow();
-              };
-            }
-          },
-          (errorMessage) => {
-            // 错误回调
-            if (outputDiv) {
-              outputDiv.textContent += `\n\n[错误]: ${errorMessage}`;
-              outputDiv.style.color = "red";
-            }
-            this.commonHelper.setButtonLoading(buttonId, false);
+        try {
+          const fullText = await this.zhiPuService.generateReport(
+            aiKey,
+            JSON.stringify(commitList),
+            prompt
+          );
+          if (outputDiv) outputDiv.textContent = fullText;
+          this.commonHelper.showMessage("日报生成完成，点击复制", "success");
+          if (copyBtn) {
+            copyBtn.style.display = "block";
+            copyBtn.onclick = () => {
+              this.commonHelper.copyToClipboard(fullText);
+              this.commonHelper.showMessage("已复制到剪切板", "success");
+              this.commonHelper.closeWindow();
+            };
           }
-        );
+        } catch (error) {
+          if (outputDiv) {
+            outputDiv.textContent += `\n\n[错误]: ${error.message || String(error)}`;
+            outputDiv.style.color = "red";
+          }
+        }
+        this.commonHelper.setButtonLoading(buttonId, false);
       } else {
         await this.commonHelper.copyToClipboard(JSON.stringify(commitList));
         if (outputDiv)
@@ -1285,7 +1265,7 @@ class UserInfoService {
     const {
       email,
       project,
-      geminiKey,
+      aiKey,
       prompt,
       editorType,
       devProjectPath,
@@ -1296,7 +1276,7 @@ class UserInfoService {
     } = await this.getUserInfo();
     const emailInput = document.getElementById("email-input");
     const projectInput = document.getElementById("project-input");
-    const geminiKeyInput = document.getElementById("gemini-key-input");
+    const aiKeyInput = document.getElementById("ai-key-input");
     const promptInput = document.getElementById("prompt-input");
     const editorTypeInput = document.getElementById("editor-type-input");
     const devProjectPathInput = document.getElementById(
@@ -1314,8 +1294,8 @@ class UserInfoService {
     if (projectInput && project) {
       projectInput.value = project;
     }
-    if (geminiKeyInput && geminiKey) {
-      geminiKeyInput.value = geminiKey;
+    if (aiKeyInput && aiKey) {
+      aiKeyInput.value = aiKey;
     }
     if (promptInput && prompt) {
       promptInput.value = prompt;
@@ -1348,7 +1328,7 @@ class UserInfoService {
     const {
       email,
       project,
-      geminiKey,
+      aiKey,
       prompt,
       editorType,
       devProjectPath,
@@ -1360,7 +1340,7 @@ class UserInfoService {
     return {
       email,
       project,
-      geminiKey,
+      aiKey,
       prompt,
       editorType,
       devProjectPath,
@@ -1371,159 +1351,38 @@ class UserInfoService {
     };
   };
 }
-class GeminiService {
-  constructor() {
-    this.model = "gemini-2.5-flash";
-    this.baseUrl = `https://gemini-api.getan.edu.kg/v1beta/models/${this.model}`;
-  }
-  /**
-   * 调用 api 生成周报，普通方式
-   * @param {string} apiKey - API Key
-   * @param {Array} commits - 提交记录列表
-   * @returns {Promise<string>} - AI 生成的文本
-   */
-  generateReport = async (apiKey, commits, prompt) => {
-    // 构建 Prompt
-    const finalPrompt = `${prompt}\n${commits}`;
-    const url = `${this.baseUrl}:generateContent`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              {
-                text: finalPrompt,
-              },
-            ],
-          },
-        ],
-      }),
-    });
-
-    const data = await response.json();
-
-    if (data.error) {
-      throw new Error(data.error.message);
-    }
-
-    const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    return generatedText || "AI 未返回有效内容";
-  };
-  /**
-   * 调用 api 生成周报 (流式)
-   * @param {string} apiKey - API Key
-   * @param {string} commits - 提交记录
-   * @param {string} prompt - 提示词
-   * @param {function} onUpdate - 回调函数，每收到一段文字调用一次 (text) => void
-   * @param {function} onComplete - 完成时的回调 (fullText) => void
-   * @param {function} onError - 出错时的回调 (error) => void
-   */
-  generateReportStream = async (
-    apiKey,
-    commits,
-    prompt,
-    onUpdate,
-    onComplete,
-    onError
-  ) => {
-    const finalPrompt = `${prompt}\n${commits}`;
-    // 使用 streamGenerateContent 接口，并开启 SSE 模式 (alt=sse)
-    const url = `${this.baseUrl}:streamGenerateContent?alt=sse`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: finalPrompt }] }],
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `API 请求失败: ${response.status} ${response.statusText}`
-      );
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
-    let buffer = "";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      const chunk = decoder.decode(value, { stream: true });
-      buffer += chunk;
-
-      // 解析 SSE 数据
-      const lines = buffer.split("\n");
-      // 保留最后一个可能不完整的行
-      buffer = lines.pop();
-
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === "[DONE]") continue; // 结束标记
-          const data = JSON.parse(jsonStr);
-          const textChunk = data.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (textChunk) {
-            fullText += textChunk;
-            if (onUpdate) onUpdate(fullText); // 实时更新 UI
-          }
-        }
-      }
-    }
-    if (onComplete) onComplete(fullText);
-  };
-}
 class ZhiPuService {
   constructor() {
-    // 使用更常见且额度友好的默认模型
     this.model = "glm-5";
-    this.baseUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
+    this.baseUrl = "https://open.bigmodel.cn/api/anthropic/v1/messages";
   }
 
-  /**
-   * 调用 智谱GLM 生成周报，普通方式
-   * @param {string} apiKey - 智谱 API Key（Bearer token）
-   * @param {Array|string} commits - 提交记录列表或字符串
-   * @param {string} prompt - 提示词
-   * @returns {Promise<string>} - AI 生成的文本
-   */
   generateReport = async (apiKey, commits, prompt) => {
     const finalPrompt = `${prompt}\n${commits}`;
     const response = await fetch(this.baseUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
         model: this.model,
+        max_tokens: 65536,
         messages: [
           {
             role: "user",
             content: finalPrompt,
           },
         ],
-        thinking: {
-          type: "enabled",
-        },
-        max_tokens: 65536,
-        temperature: 1.0,
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
+      const errBody = await response.json().catch(() => ({}));
+      throw new Error(
+        errBody?.error?.message || `API 请求失败: ${response.status} ${response.statusText}`
+      );
     }
 
     const data = await response.json();
@@ -1532,116 +1391,9 @@ class ZhiPuService {
       throw new Error(data.error.message || "智谱接口返回错误");
     }
 
-    const generatedText =
-      data.choices?.[0]?.message?.content ||
-      data.choices?.[0]?.delta?.content ||
-      "";
+    const textBlocks = (data.content || []).filter((b) => b.type === "text");
+    const generatedText = textBlocks.map((b) => b.text).join("");
     return generatedText || "AI 未返回有效内容";
-  };
-
-  /**
-   * 调用 智谱GLM 生成周报 (流式)
-   * @param {string} apiKey - 智谱 API Key（Bearer token）
-   * @param {string} commits - 提交记录
-   * @param {string} prompt - 提示词
-   * @param {function} onUpdate - 回调函数，每收到一段文字调用一次 (text) => void
-   * @param {function} onComplete - 完成时的回调 (fullText) => void
-   * @param {function} onError - 出错时的回调 (error) => void
-   */
-  generateReportStream = async (
-    apiKey,
-    commits,
-    prompt,
-    onUpdate,
-    onComplete,
-    onError
-  ) => {
-    const finalPrompt = `${prompt}\n${commits}`;
-    let response;
-    try {
-      response = await fetch(this.baseUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: this.model,
-          messages: [
-            {
-              role: "user",
-              content: finalPrompt,
-            },
-          ],
-          thinking: {
-            type: "enabled",
-          },
-          stream: true,
-          max_tokens: 65536,
-          temperature: 1.0,
-        }),
-      });
-    } catch (error) {
-      if (onError) onError(error.message || String(error));
-      return;
-    }
-
-    if (!response.ok || !response.body) {
-      const msg = `API 请求失败: ${response.status} ${response.statusText}`;
-      if (onError) onError(msg);
-      return;
-    }
-
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let fullText = "";
-    let buffer = "";
-
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value, { stream: true });
-        buffer += chunk;
-
-        const lines = buffer.split("\n");
-        buffer = lines.pop(); // 保留最后可能不完整的一行
-
-        for (const line of lines) {
-          const trimmed = line.trim();
-          if (!trimmed) continue;
-
-          // 兼容 SSE 格式：智谱流式返回以 "data:" 开头
-          let payload = trimmed;
-          if (payload.startsWith("data:")) {
-            payload = payload.slice(5).trim();
-          }
-
-          if (!payload || payload === "[DONE]") {
-            continue;
-          }
-
-          let data;
-          try {
-            data = JSON.parse(payload);
-          } catch {
-            continue;
-          }
-          const piece =
-            data.choices?.[0]?.delta?.content ||
-            data.choices?.[0]?.message?.content ||
-            "";
-          if (piece) {
-            fullText += piece;
-            if (onUpdate) onUpdate(fullText);
-          }
-        }
-      }
-      if (onComplete) onComplete(fullText);
-    } catch (error) {
-      if (onError) onError(error.message || String(error));
-    }
   };
 }
 const coreController = new CoreController();

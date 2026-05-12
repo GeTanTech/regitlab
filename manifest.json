@@ -16,7 +16,6 @@
     "https://dcs-uat.cscec.com/*",
     "https://dcs-pre.cscec.com/*",
     "https://dcs.cscec.com/*",
-    "https://gemini-api.getan.edu.kg/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
   ],

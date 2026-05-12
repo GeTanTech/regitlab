@@ -210,30 +210,6 @@ function V() {
 
 ```js | pure
 async function V() {
-  var LS_KEY = "__menuTreeForPortalCache";
-  var Ge = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
-  if(!Ge?.moduleCode) {
-    try {
-      var raw = localStorage.getItem(LS_KEY);
-      if (raw) {
-        return Promise.resolve(JSON.parse(raw));
-      }
-    } catch (e) {}
-  }
-  let result = await ee("get", {
-    url: "/engine/metadata/getMenuTreeForPortal",
-    data: Ge
-  })
-  if(!Ge?.moduleCode){
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify(result));
-    } catch (e) {}
-  }
-  return result
-}
-```
-```js | pure
-async function V() {
   var Ge = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
   if(!Ge?.moduleCode) {
     return Promise.resolve([
