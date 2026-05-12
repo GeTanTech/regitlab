@@ -147,25 +147,49 @@ async function initLocalStorage() {
     },
   });
 }
+const DCS_MENU_SEARCH_FOCUS_HOSTS = [
+  "dcs-uat-gray.cscec.com",
+  "dcs-uat.cscec.com",
+  "dcs-pre.cscec.com",
+  "dcs.cscec.com",
+];
+
+async function injectDevopsContentScript(tab) {
+  if (!tab.url || !tab.url.includes("devops.cscec.com")) return;
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["content.js"],
+    });
+  } catch (e) {
+    // 忽略注入失败
+  }
+}
+
+async function injectDcsMenuSearchFocusScript(tab) {
+  if (
+    !tab.url ||
+    !DCS_MENU_SEARCH_FOCUS_HOSTS.some((h) => tab.url.includes(h))
+  ) {
+    return;
+  }
+  try {
+    await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      files: ["dcs-menu-search-focus.js"],
+    });
+  } catch (e) {
+    // 忽略注入失败
+  }
+}
+
 async function injectContentScriptsToAllTabs() {
   const windows = await chrome.windows.getAll({ populate: true });
   for (const window of windows) {
     if (window.tabs) {
       for (const tab of window.tabs) {
-        if (
-          tab.url &&
-          (tab.url.includes("devops.cscec.com") ||
-            tab.url.includes("dcs-uat-gray.cscec.com"))
-        ) {
-          try {
-            await chrome.scripting.executeScript({
-              target: { tabId: tab.id },
-              files: ["content.js"],
-            });
-          } catch (e) {
-            // 忽略注入失败
-          }
-        }
+        await injectDevopsContentScript(tab);
+        await injectDcsMenuSearchFocusScript(tab);
       }
     }
   }

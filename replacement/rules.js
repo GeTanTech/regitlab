@@ -24,6 +24,26 @@ function getUrlReplacements() {
 		    localPath: "replacement/js/chunk-23b24f81.0b5151df.js",
 		    id: "chunk-23b24f81.0b5151df.js",
 	    },
+      {
+        remoteUrl: "https://dcs-uat-gray.cscec.com/umi.dc235efd.js",
+        localPath: "replacement/js/umi.dc235efd.js",
+        id: "gray-umi.dc235efd.js",
+      },
+      {
+        remoteUrl: "https://dcs-uat.cscec.com/umi.dc235efd.js",
+        localPath: "replacement/js/umi.dc235efd.js",
+        id: "uat-umi.dc235efd.js",
+      },
+      {
+        remoteUrl: "https://dcs-pre.cscec.com/umi.dc235efd.js",
+        localPath: "replacement/js/umi.dc235efd.js",
+        id: "pre-umi.dc235efd.js",
+      },
+      {
+        remoteUrl: "https://dcs.cscec.com/umi.dc235efd.js",
+        localPath: "replacement/js/umi.dc235efd.js",
+        id: "dcs-umi.dc235efd.js",
+      },
     ],
     css: [],
     json: [

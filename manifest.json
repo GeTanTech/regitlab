@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "regitlab",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "gitlab分支快速选择、创建pull Request自动化、一键生成日志",
   "permissions": [
     "declarativeNetRequest",
@@ -14,6 +14,8 @@
     "https://devops.cscec.com/*",
     "https://dcs-uat-gray.cscec.com/*",
     "https://dcs-uat.cscec.com/*",
+    "https://dcs-pre.cscec.com/*",
+    "https://dcs.cscec.com/*",
     "https://gemini-api.getan.edu.kg/*",
     "http://localhost/*",
     "http://127.0.0.1/*"
@@ -39,13 +41,27 @@
       ],
       "js": ["config-bridge.js", "content.js"],
       "run_at": "document_start"
+    },
+    {
+      "matches": [
+        "https://dcs-uat-gray.cscec.com/*",
+        "https://dcs-uat.cscec.com/*",
+        "https://dcs-pre.cscec.com/*",
+        "https://dcs.cscec.com/*"
+      ],
+      "js": ["dcs-menu-search-focus.js"],
+      "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
       "resources": ["replacement/*", "config-injector.js"],
       "matches": [
-        "https://devops.cscec.com/*"
+        "https://devops.cscec.com/*",
+        "https://dcs-uat-gray.cscec.com/*",
+        "https://dcs-uat.cscec.com/*",
+        "https://dcs-pre.cscec.com/*",
+        "https://dcs.cscec.com/*"
       ]
     }
   ]

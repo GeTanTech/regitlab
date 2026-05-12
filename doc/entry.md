@@ -168,3 +168,85 @@ loadCommits: function(t) {
   })
 }
 ```
+
+## 切换项目直接打开工作台【umi.dc235efd.js】
+
+替换前的内容
+
+```js | pure
+function je() {
+  return ue.Rgi.handleUrl("/portal/home/workbench", {
+      suitKey: "portal"
+  })
+}
+```
+
+替换后的内容
+
+```js | pure
+function je() {
+  return ue.Rgi.handleUrl("/portal/home/workbench", {
+      suitKey: "portal",
+      mt: "all",
+      appTitle: "\u5DE5\u4F5C\u53F0"
+  })
+}
+```
+
+
+替换前的内容
+
+```js | pure
+function V() {
+  var Ge = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+  return ee("get", {
+      url: "/engine/metadata/getMenuTreeForPortal",
+      data: Ge
+  })
+}
+```
+
+替换后的内容
+
+```js | pure
+async function V() {
+  var LS_KEY = "__menuTreeForPortalCache";
+  var Ge = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+  if(!Ge?.moduleCode) {
+    try {
+      var raw = localStorage.getItem(LS_KEY);
+      if (raw) {
+        return Promise.resolve(JSON.parse(raw));
+      }
+    } catch (e) {}
+  }
+  let result = await ee("get", {
+    url: "/engine/metadata/getMenuTreeForPortal",
+    data: Ge
+  })
+  if(!Ge?.moduleCode){
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify(result));
+    } catch (e) {}
+  }
+  return result
+}
+```
+```js | pure
+async function V() {
+  var Ge = arguments.length > 0 && arguments[0] !== void 0 ? arguments[0] : {};
+  if(!Ge?.moduleCode) {
+    return Promise.resolve([
+      true,
+      {
+        data: [],
+        msg: "操作成功"
+      }
+    ]);
+  }
+  return ee("get", {
+      url: "/engine/metadata/getMenuTreeForPortal",
+      data: Ge
+  })
+}
+```
