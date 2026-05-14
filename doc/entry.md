@@ -226,3 +226,27 @@ async function V() {
   })
 }
 ```
+
+## 发版搜索过滤【main.33c170d1.js】
+
+替换前的内容
+
+```js | pure
+, i = async (e, t) => await r.default.$post("/search/links", e, t)
+```
+
+替换后的内容
+
+```js | pure
+,i = async (e, t) => {
+  const sanitizeIqlTitleNoise = (iql,prefix = "cip-economic") => {
+    if (typeof iql !== "string" || !iql) return iql;
+    const esc = prefix.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const cap = `(${esc}-\\d+)[^"]*"`;
+    return iql
+      .replace(new RegExp(`标题 ~ "${cap}`, "g"), '标题 ~ "$1"')
+      .replace(new RegExp(`'key' = "${cap}`, "g"), '\'key\' = "$1"');
+  }
+  return await r.default.$post("/search/links", {...e, iql:sanitizeIqlTitleNoise(e.iql)}, t)
+}
+```

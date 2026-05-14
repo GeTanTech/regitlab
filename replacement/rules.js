@@ -67,6 +67,11 @@ function getUrlReplacements() {
         localPath: "replacement/json/stable.json",
         id: "stable.json",
       },
+      {
+        remoteUrl: "https://devops.cscec.com/_team/spa-build/static/js/main.33c170d1.js",
+        localPath: "replacement/json/main.33c170d1.js",
+        id: "replacement/json/main.33c170d1.js",
+      },
     ],
   };
   
