@@ -47,26 +47,26 @@ function getUrlReplacements() {
     ],
     css: [],
     json: [
-      {
-        remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=dev&*",
-        localPath: "replacement/json/dev.json",
-        id: "dev.json",
-      },
-      {
-        remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=uat&*",
-        localPath: "replacement/json/uat.json",
-        id: "uat.json",
-      },
-      {
-        remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=stable-uat&*",
-        localPath: "replacement/json/stable-uat.json",
-        id: "stable-uat.json",
-      },
-      {
-        remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=stable&*",
-        localPath: "replacement/json/stable.json",
-        id: "stable.json",
-      },
+      // {
+      //   remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=dev&*",
+      //   localPath: "replacement/json/dev.json",
+      //   id: "dev.json",
+      // },
+      // {
+      //   remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=uat&*",
+      //   localPath: "replacement/json/uat.json",
+      //   id: "uat.json",
+      // },
+      // {
+      //   remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=stable-uat&*",
+      //   localPath: "replacement/json/stable-uat.json",
+      //   id: "stable-uat.json",
+      // },
+      // {
+      //   remoteUrl: "https://devops.cscec.com/osc/_ipipe/ipipe/pipeline/rest/v1/pipeline-sources/branches?pattern=stable&*",
+      //   localPath: "replacement/json/stable.json",
+      //   id: "stable.json",
+      // },
       {
         remoteUrl: "https://devops.cscec.com/_team/spa-build/static/js/main.33c170d1.js",
         localPath: "replacement/json/main.33c170d1.js",

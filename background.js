@@ -87,10 +87,10 @@ async function setupReplacementRules() {
 }
 async function initLocalStorage() {
   const config = {
-    cherry_pick: {
-      btn: "cherry_pick",
+    pull_requests: {
+      btn: "pull_requests",
       default: true,
-      url: "https://devops.cscec.com/osc/_source/osc/cip-economic/cost-react-1/-/cherry_pick/new",
+      url: "https://devops.cscec.com/osc/_source/osc/cip-economic/cost-react-1/-/pull_requests/new",
     },
     pipeline: {
       btn: "pipeline",

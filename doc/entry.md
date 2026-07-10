@@ -14,7 +14,7 @@ Ts = function (e, t) {
 
 ```js | pure
 Ts = async function (e, t) {
-  const branchMap = {1: "dev", 2: "uat", 3: "stable-uat", 4: "stable"};
+  const branchMap = {0: "master", 1: "dev", 2: "uat", 3: "stable-uat", 4: "stable"};
   if (Object.keys(branchMap).includes(e.name)) {
     const res = {
       data: {
@@ -249,4 +249,19 @@ async function V() {
   }
   return await r.default.$post("/search/links", {...e, iql:sanitizeIqlTitleNoise(e.iql)}, t)
 }
+```
+
+## 事项详情【main.33c170d1.js】
+
+查看缺陷详情时把接口的数据记录下来
+
+替换前的内容
+```js | pure
+const {fields: i, customFieldKeys: s, item: l, approvalInfo: c, watchers: u, checkInInfo: d, hasComment: p, revoke: h, permission: m} = t.data || {}, v = null != n ? n : l;
+```
+
+替换后的内容
+```js | pure
+const {fields: i, customFieldKeys: s, item: l, approvalInfo: c, watchers: u, checkInInfo: d, hasComment: p, revoke: h, permission: m} = t.data || {}, v = null != n ? n : l;
+sessionStorage.setItem('teamParseItem', JSON.stringify(l || {}));
 ```

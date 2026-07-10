@@ -12,7 +12,9 @@
         --card-bg: #ffffff;
         --text-main: #1f2937;
         --text-sub: #6b7280;
-        --danger: #ef4444;
+        --danger: #b54747;
+        --danger-bg: #fef2f2;
+        --danger-border: #f5c6c6;
         --success: #10b981;
         --uat-color: #f59e0b;
         --gray-color: #6366f1;
@@ -194,9 +196,10 @@
         background-color: var(--primary);
         color: white;
       }
-      .btn-danger {
-        background-color: var(--danger);
-        color: white;
+      button.btn.btn-danger {
+        background-color: var(--danger-bg);
+        color: var(--danger);
+        border: 1px solid var(--danger-border);
       }
       .btn-success {
         background-color: var(--success);
@@ -206,6 +209,11 @@
         border: 1px solid #d1d5db;
         background: #e5e7eb;
         color: var(--text-main);
+      }
+      .btn-commit {
+        background-color: #f59e0b;
+        color: #ffffff;
+        border: 1px solid #d97706;
       }
       .btn-cyan {
         background: #00bcd4;
@@ -268,6 +276,16 @@
       }
       .pipeline-span-2 {
         grid-column: span 2;
+      }
+
+      .pipeline-branch-input .input-field {
+        padding: 6px 10px;
+        font-size: 13px;
+      }
+
+      .pipeline-branch-input .helper-text {
+        margin-top: 6px;
+        line-height: 1.4;
       }
 
       .tag {
@@ -686,7 +704,7 @@
             <div class="help-icon icon-btn">
               <span>💡</span>
               <span class="tooltip"
-                >搜索状态时，输入1选择dev分支，输入2选择uat分支，输入3选择stable-uat分支，输入4选择stable分支</span
+                >搜索状态时，输入0选择master分支，输入1选择dev分支，输入2选择uat分支，输入3选择stable-uat分支，输入4选择stable分支</span
               >
             </div>
           </div>
@@ -741,10 +759,31 @@
             </button>
             <button
               id="clear-my-branches-btn"
-              class="btn btn-danger full-width"
+              class="btn btn-danger"
             >
               🗑 清空我的分支
             </button>
+            <button id="get-commit-text-btn" class="btn btn-commit">
+              📝 生成commit文本
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="form-group pipeline-branch-input">
+            <label for="pipeline-branch-input">自定义部署分支</label>
+            <input
+              type="text"
+              id="pipeline-branch-input"
+              placeholder="完整的部署分支，不用空格"
+              class="input-field"
+            />
+            <!-- <div class="helper-text">
+              G 默认 uat，U 默认 stable-uat；填写后将覆盖全部流水线按钮
+            </div> -->
+            <div class="helper-text">
+              🚨 开发不要轻易部署！！！
+            </div>
           </div>
         </div>
 

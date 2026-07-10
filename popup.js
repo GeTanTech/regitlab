@@ -362,6 +362,21 @@ class CoreController {
         handler,
       });
     }
+    // 获取页面文本按钮
+    const getCommitTextBtn = document.getElementById("get-commit-text-btn");
+    if (getCommitTextBtn) {
+      const handler = this.wrapHandler(
+        this.gitlabService.getCommitText,
+        ["devops"],
+        []
+      );
+      getCommitTextBtn.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: getCommitTextBtn,
+        event: "click",
+        handler,
+      });
+    }
   };
   pipelineAndListeners = () => {
     const container = document.querySelector(".container");
@@ -653,7 +668,7 @@ class CommonHelper {
         }
       case "create_pull_request":
         const reg2 =
-          /^https:\/\/devops\.cscec\.com\/osc\/_source\/osc\/([^\/]+\/[^\/]+)\/-\/pull_requests\/new\?.*/;
+          /^https:\/\/devops\.cscec\.com\/osc\/_source\/osc\/([^\/]+\/[^\/]+)\/-\/pull_requests\/new(?:\?.*)?$/;
         const matchResult2 = url.match(reg2);
         if (matchResult2) {
           return matchResult2[1] || "";
@@ -682,7 +697,7 @@ class UrlButtonService {
     return /^[^/\s]+\/[^/\s]+$/.test(project);
   };
   buildCherryPickUrl = (project) => {
-    return `${this.commonHelper.gitlabDomain}/osc/_source/osc/${project}/-/cherry_pick/new`;
+    return `${this.commonHelper.gitlabDomain}/osc/_source/osc/${project}/-/pull_requests/new`;
   };
   syncCherryPickButtonUrl = async (project) => {
     if (!this.isValidProjectPath(project)) return;
@@ -692,7 +707,7 @@ class UrlButtonService {
     const targetUrl = this.buildCherryPickUrl(project);
     let hasUpdated = false;
     const nextButtons = buttons.map((item) => {
-      if (item?.btn !== "cherry_pick" || item.default !== true) {
+      if (item?.btn !== "pull_requests" || item.default !== true) {
         return item;
       }
       if (item.url === targetUrl) {
@@ -891,6 +906,93 @@ class GitlabService {
     }
   };
   /**
+   * 获取页面目标元素文本并复制到剪贴板
+   */
+  getCommitText = async ({ tab }) => {
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      world: "MAIN",
+      func: () => {
+        const getStatus = () => {
+          const statusBtn = document.querySelector(
+            "#header-detail-box button.team-front-btn-link.status-btn"
+          );
+          const text =
+            statusBtn?.querySelector("span[title]")?.textContent?.trim() || "";
+          return text || "";
+        };
+        const getUserIdFromPage = () => {
+          const usernameEl = document.querySelector("span.username");
+          const text = usernameEl?.textContent?.trim() || "";
+          const match = text?.match(/\((\d+)\)/);
+          return (match ? match[1] : "")?.trim();
+        };
+        const getVersion = () => {
+          const versionEl = document.querySelector(
+            '#version span[class*="dropdown-select-option"]'
+          );
+          const text = versionEl?.textContent?.trim() || "";
+          return text.slice(-4);
+        };
+        const status = getStatus();// 状态
+        const userId = getUserIdFromPage();// 用户ID
+        const version = getVersion();// 版本号
+        const teamParseItem = sessionStorage.getItem("teamParseItem");
+        if (teamParseItem) {
+          const data = JSON.parse(teamParseItem);
+          const { values: {
+            bugDropdown = [],
+            glxq = []
+          } = [], name = "", key = "" } = data || {};
+          const _key = key;// 缺陷号
+          const _type = bugDropdown?.includes("代码错误") ? "bugfix" : "feat"; // 类型
+          const _glxq = glxq?.[0]?.["key"] || "";// 关联需求
+          const _name = name?.trim() || ""; // 缺陷内容
+          return {
+            version,
+            key: _key,
+            type: _type,
+            userId,
+            glxq: _glxq,
+            name: _name,
+            status,
+          }
+        }
+        return null;
+      },
+    });
+    try {
+      const {
+        version,
+        key,
+        type,
+        userId,
+        glxq,
+        name,
+        status,
+      } = result?.result;
+      if(status == "激活" || status == "缺陷确认" || status == ""){
+        this.commonHelper.showMessage("流转到解决中及以后状态可获取提交文本");
+        return;
+      }
+      let text = `${version} ${key} ${type} ${userId} `
+      if(type == "feat"){
+        text = text + `${name}`
+      } else if(type == "bugfix"){
+        if(glxq) {
+          text = text + `${glxq} ${name}`
+        } else {
+          text = text + `${name}`
+        }
+      }
+      await this.commonHelper.copyToClipboard(text);
+      this.commonHelper.showMessage(text, "success");
+      this.commonHelper.closeWindow();
+    } catch (error) {
+      this.commonHelper.showMessage("获取提交文本失败");
+    }
+  };
+  /**
    * 自动填写标题并创建Pull Request
    */
   autoCreatePullRequest = async ({ tab, userInfo }) => {
@@ -903,6 +1005,31 @@ class GitlabService {
       return;
     }
     const params = this.commonHelper.parseUrlParams(tab.url);
+    if (!params.target_branch || !params.source_branch) {
+      const [result] = await chrome.scripting.executeScript({
+        target: { tabId: tab.id },
+        world: "MAIN",
+        func: () => {
+          const container = document.querySelector(".branches-select-container");
+          if (!container) return null;
+          const branches = {};
+          container.querySelectorAll(".source-branch").forEach((section) => {
+            const label = section.querySelector(".text-muted")?.textContent?.trim();
+            const branch = section.querySelector(".branch span")?.textContent?.trim();
+            if (label === "源分支" && branch) branches.source_branch = branch;
+            if (label === "目标分支" && branch) branches.target_branch = branch;
+          });
+          return branches.source_branch || branches.target_branch ? branches : null;
+        },
+      });
+      const branches = result?.result;
+      if (branches?.source_branch) params.source_branch = branches.source_branch;
+      if (branches?.target_branch) params.target_branch = branches.target_branch;
+    }
+    if (!params.target_branch || !params.source_branch) {
+      this.commonHelper.showMessage("无法获取源分支或目标分支");
+      return;
+    }
     const response = await chrome.runtime.sendMessage({
       action: "getPullRequestList",
       data: {
@@ -939,7 +1066,7 @@ class GitlabService {
       // 更新当前页面跳转到我的分支页面
       setTimeout(async () => {
         await this.commonHelper.updateCurrentTabUrl(
-          `${this.commonHelper.gitlabDomain}/osc/_source/osc/${project}/-/cherry_pick/new`
+          `${this.commonHelper.gitlabDomain}/osc/_source/osc/${project}/-/pull_requests/new`
         );
       }, 1000);
     } else {
@@ -1141,8 +1268,20 @@ class PipelineService {
     return null;
   };
 
+  getCustomBranch = () => {
+    const input = document.getElementById("pipeline-branch-input");
+    const value = input?.value?.trim();
+    return value || null;
+  };
+
   runPipeline = async (_, config) => {
     const [type, branch, buttonId] = config;
+    const customBranch = this.getCustomBranch();
+    // TODO: 临时要求必须填写自定义分支，后续移除
+    if (!customBranch) {
+      this.commonHelper.showMessage("请先填写自定义部署分支");
+      return;
+    }
     this.commonHelper.setButtonLoading(buttonId, true);
     const baseParams = this.pipelineConfig[type][branch];
     const response = await chrome.runtime.sendMessage({
@@ -1150,6 +1289,7 @@ class PipelineService {
       data: {
         baseParams: {
           ...baseParams,
+          branch: customBranch,
           params: this.pipelineCommonConfig.params,
         },
       },

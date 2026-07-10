@@ -98930,6 +98930,7 @@
                         L("......fetch.end", e, a - o);
                         const {fields: i, customFieldKeys: s, item: l, approvalInfo: c, watchers: u, checkInInfo: d, hasComment: p, revoke: h, permission: m} = t.data || {}
                           , v = null != n ? n : l;
+                        sessionStorage.setItem('teamParseItem', JSON.stringify(l || {}));
                         L(".......fetchItemData", e, null == i ? void 0 : i.length, null == s ? void 0 : s.length, c, u),
                         k(void 0),
                         A(void 0),
