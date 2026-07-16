@@ -26,6 +26,7 @@ function updateConfig(userInfo = {}) {
     onlyMyself: userInfo.onlyMyself === true,
     filterMergeCommit: userInfo.filterMergeCommit === true,
     email: userInfo.email || "",
+    branchMapping: userInfo.branchMapping || "",
   };
   window.postMessage(
     { type: "__EXTENSION_REGITLAB_CONFIG_UPDATE__", data: config },

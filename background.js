@@ -86,66 +86,36 @@ async function setupReplacementRules() {
   isSettingUp = false;
 }
 async function initLocalStorage() {
-  const config = {
-    pull_requests: {
-      btn: "pull_requests",
-      default: true,
-      url: "https://devops.cscec.com/osc/_source/osc/cip-economic/cost-react-1/-/pull_requests/new",
-    },
-    pipeline: {
-      btn: "pipeline",
-      default: true,
-      url: "https://devops.cscec.com/osc/_ipipe/new-ipipe/pipelines/list?viewId=FAVORITE",
-    },
-    my_board: {
-      btn: "my_board",
-      default: true,
-      url: "https://devops.cscec.com/osc/_team/osc/workspaces/cip-economic/boards/ad788dc8-5436-42f1-8ba6-a9ac535046ce",
-    },
+  const defaultUrlButtons = [
+    { btn: "pull_request", default: true, url: "https://devops.cscec.com/osc/_source/osc/cip-economic/cost-react-1/-/pull_requests/new" },
+    { btn: "pipeline", default: true, url: "https://devops.cscec.com/osc/_ipipe/new-ipipe/pipelines/list?viewId=FAVORITE" },
+    { btn: "my_board", default: true, url: "https://devops.cscec.com/osc/_team/osc/workspaces/cip-economic/boards/ad788dc8-5436-42f1-8ba6-a9ac535046ce" },
+  ];
+  const defaults = {
+    prompt: "根据我的gitlab提交记录生成简短日报;格式:仅输出紧凑的JSON数组字符串，格式为 [{\"Cname\":\"内容\",\"date\":\"YYYY-MM-DD\"},...]。严禁包含换行符、空格、代码块标记或加粗符号。字数:每天的Cname内容不超过100字。内容重点：如包含“生产”、“开发”相关任务，需具体描述并优先保留，描述需具体，避免笼统或假大空。内容如下:",
+    project: "cip-economic/cost-react-1",
+    editorType: "vscode",
+    commitHistoryBranch: "uat",
+    onlyMyself: false,
+    filterMergeCommit: false,
+    branchMapping: JSON.stringify({"a":"dev","d":"stable","8":"release-20260804","9":"release-20260903","10":"release-20261009"})
   };
-  const defaultPrompt =
-    `根据我的gitlab提交记录生成简短日报;格式:仅输出紧凑的JSON数组字符串，格式为 [{"Cname":"内容","date":"YYYY-MM-DD"},...]。严禁包含换行符、空格、代码块标记或加粗符号。字数:每天的Cname内容不超过100字。内容重点：如包含“生产”、“开发”相关任务，需具体描述并优先保留，描述需具体，避免笼统或假大空。内容如下:`;
-  const defaultProject = "cip-economic/cost-react-1";
-  const defaultCommitHistoryBranch = "uat";
-  const defaultEditorType = "vscode";
-  const defaultOnlyMyself = false;
-  const defaultFilterMergeCommit = false;
-  const result = await chrome.storage.local.get("userInfo");
-  const { 
-    urlButtons = [], 
-    prompt = "", 
-    project = "", 
-    editorType = "", 
-    commitHistoryBranch = "",
-    onlyMyself,
-    filterMergeCommit,
-  } = result.userInfo || {};
-  let _prompt = "";
-  let _project = "";
-  let _urlButtons = [];
-  let _editorType = "";
-  let _commitHistoryBranch = "";
-  let _onlyMyself = null;
-  let _filterMergeCommit = null;
-  if (!prompt) _prompt = defaultPrompt;
-  if (!project) _project = defaultProject;
-  if (urlButtons.length === 0) _urlButtons = Object.values(config);
-  if (!editorType) _editorType = defaultEditorType;
-  if (!commitHistoryBranch) _commitHistoryBranch = defaultCommitHistoryBranch;
-  if (onlyMyself === undefined) _onlyMyself = defaultOnlyMyself;
-  if (filterMergeCommit === undefined) _filterMergeCommit = defaultFilterMergeCommit;
-  await chrome.storage.local.set({
-    userInfo: {
-      ...(result.userInfo || {}),
-      ...(_prompt ? { prompt: _prompt } : {}),
-      ...(_project ? { project: _project } : {}),
-      ...(_urlButtons.length > 0 ? { urlButtons: _urlButtons } : {}),
-      ...(_editorType ? { editorType: _editorType } : {}),
-      ...(_commitHistoryBranch ? { commitHistoryBranch: _commitHistoryBranch } : {}),
-      ...(_onlyMyself !== null ? { onlyMyself: _onlyMyself } : {}),
-      ...(_filterMergeCommit !== null ? { filterMergeCommit: _filterMergeCommit } : {}),
-    },
-  });
+  const { userInfo = {} } = await chrome.storage.local.get("userInfo");
+  const merged = { ...userInfo };
+  // 未设置或空字符串时回退到默认值（布尔值 false 不受影响）
+  for (const [key, val] of Object.entries(defaults)) {
+    if (merged[key] === undefined || merged[key] === "") {
+      merged[key] = val;
+    }
+  }
+  // urlButtons：空数组时使用默认值
+  if (!merged.urlButtons || merged.urlButtons.length === 0) {
+    merged.urlButtons = defaultUrlButtons;
+  }
+  // 清理旧的 default 按钮后，将最新的 defaultUrlButtons 置顶
+  const customButtons = (merged.urlButtons || []).filter((item) => !item?.default);
+  merged.urlButtons = [...defaultUrlButtons, ...customButtons];
+  await chrome.storage.local.set({ userInfo: merged });
 }
 const DCS_MENU_SEARCH_FOCUS_HOSTS = [
   "dcs-uat-gray.cscec.com",

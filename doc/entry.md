@@ -14,7 +14,13 @@ Ts = function (e, t) {
 
 ```js | pure
 Ts = async function (e, t) {
-  const branchMap = {0: "master", 1: "dev", 2: "uat", 3: "stable-uat", 4: "stable"};
+  let branchMap = {};
+  try {
+    const source = window.__EXTENSION_REGITLAB_CONFIG?.branchMapping || "{}";
+    branchMap = JSON.parse(source);
+  } catch (error) {
+    branchMap = {"a":"dev","d":"stable","8":"release-20260804","9":"release-20260903","10":"release-20261009"};
+  }
   if (Object.keys(branchMap).includes(e.name)) {
     const res = {
       data: {

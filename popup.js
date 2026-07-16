@@ -210,6 +210,37 @@ class CoreController {
         handler,
       });
     }
+    // 监听自定义分支映射输入变化
+    const branchMappingTextarea = document.getElementById(
+      "branch-mapping-textarea"
+    );
+    if (branchMappingTextarea) {
+      const helperText = branchMappingTextarea.nextElementSibling;
+      const handler = () => {
+        const value = branchMappingTextarea.value.trim();
+        this.commonHelper.updateLocalStorage(
+          "userInfo",
+          "branchMapping",
+          value
+        );
+        if (!value) {
+          if (helperText) helperText.style.color = "";
+          return;
+        }
+        try {
+          JSON.parse(value);
+          if (helperText) helperText.style.color = "";
+        } catch (error) {
+          if (helperText) helperText.style.color = "var(--danger)";
+        }
+      };
+      branchMappingTextarea.addEventListener("input", handler);
+      this.eventHandlers.push({
+        element: branchMappingTextarea,
+        event: "input",
+        handler,
+      });
+    }
     // 设置页面开关按钮
     const settingsIcon = document.getElementById("settings-icon");
     const settingsPanel = document.getElementById("settings-panel");
@@ -1413,6 +1444,7 @@ class UserInfoService {
       commitHistoryBranch,
       onlyMyself,
       filterMergeCommit,
+      branchMapping,
     } = await this.getUserInfo();
     const emailInput = document.getElementById("email-input");
     const projectInput = document.getElementById("project-input");
@@ -1426,6 +1458,7 @@ class UserInfoService {
       "clear-exclude-branches-textarea"
     );
     const commitHistoryBranchInput = document.getElementById("commit-history-branch-input");
+    const branchMappingTextarea = document.getElementById("branch-mapping-textarea");
     const onlyMyselfCheckbox = document.getElementById("only-myself-checkbox");
     const filterMergeCommitCheckbox = document.getElementById("filter-merge-commit-checkbox");
     if (emailInput && email) {
@@ -1452,6 +1485,12 @@ class UserInfoService {
     if (commitHistoryBranchInput && commitHistoryBranch) {
       commitHistoryBranchInput.value = commitHistoryBranch;
     }
+    if (branchMappingTextarea && branchMapping) {
+      branchMappingTextarea.value =
+        typeof branchMapping === "string"
+          ? branchMapping
+          : JSON.stringify(branchMapping, null, 2);
+    }
     if (onlyMyselfCheckbox) {
       onlyMyselfCheckbox.checked = onlyMyself === true;
     }
@@ -1476,6 +1515,7 @@ class UserInfoService {
       commitHistoryBranch,
       onlyMyself,
       filterMergeCommit,
+      branchMapping,
     } = result || {};
     return {
       email,
@@ -1488,6 +1528,7 @@ class UserInfoService {
       commitHistoryBranch,
       onlyMyself,
       filterMergeCommit,
+      branchMapping,
     };
   };
 }

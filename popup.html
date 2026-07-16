@@ -704,7 +704,7 @@
             <div class="help-icon icon-btn">
               <span>💡</span>
               <span class="tooltip"
-                >搜索状态时，输入0选择master分支，输入1选择dev分支，输入2选择uat分支，输入3选择stable-uat分支，输入4选择stable分支</span
+                >自定义分支映射，搜索状态时，输入快捷值选择分支，推荐数字来映射release分支不同的月份的备份，abcd来映射dev和stable等主分支</span
               >
             </div>
           </div>
@@ -720,7 +720,7 @@
               🔍 $udp.getUser
             </button>
             <button id="inject-localhost-storage-btn" class="btn btn-outline">
-              💾 同步 udp_dev_user
+              💾 sync local.user
             </button>
           </div>
         </div>
@@ -919,6 +919,22 @@
               maxlength="1000"
               class="input-field"
             ></textarea>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">🔀 自定义快捷选择分支映射</span>
+          </div>
+          <div class="form-group">
+            <label>分支映射 (JSON)</label>
+            <textarea
+              id="branch-mapping-textarea"
+              placeholder='{"8":"release-20260804","9":"release-20260903","10":"release-20261009","a":"dev","d":"stable"}'
+              rows="5"
+              class="input-field"
+            ></textarea>
+            <div class="helper-text">请输入 JSON 格式的分支映射，键为快捷值，值为目标分支名</div>
           </div>
         </div>
 
