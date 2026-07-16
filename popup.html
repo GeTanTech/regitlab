@@ -146,6 +146,7 @@
         border-radius: var(--radius);
         box-shadow: var(--shadow);
         padding: 12px 16px;
+        flex-shrink: 0;
       }
 
       .section-title {
@@ -520,15 +521,19 @@
 
       .settings-content {
         flex: 1;
+        min-height: 0;
         overflow-y: auto;
         padding: 12px 16px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
       }
 
       .settings-content .card {
-        border: 1px solid transparent;
+        border: 1px solid #e5e7eb;
+        padding: 0;
+        overflow: hidden;
+        flex-shrink: 0;
       }
 
       .card-header {
@@ -547,6 +552,53 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin: 0;
+      }
+
+      .collapse-header {
+        margin-bottom: 0;
+        padding: 12px 16px;
+        border-bottom: 1px solid transparent;
+        cursor: pointer;
+        user-select: none;
+        justify-content: space-between;
+        transition: background-color 0.2s;
+      }
+
+      .collapse-header:hover {
+        background-color: #f9fafb;
+      }
+
+      .collapse-panel.active .collapse-header {
+        border-bottom-color: #f3f4f6;
+      }
+
+      .collapse-arrow {
+        width: 12px;
+        height: 12px;
+        flex-shrink: 0;
+        color: var(--text-sub);
+        transition: transform 0.25s ease;
+        transform: rotate(0deg);
+      }
+
+      .collapse-panel.active .collapse-arrow {
+        transform: rotate(90deg);
+      }
+
+      .card.collapse-panel {
+        padding: 0;
+        overflow: hidden;
+      }
+
+      .collapse-body {
+        display: none;
+        padding: 12px 16px 14px;
+      }
+
+      .collapse-panel.active .collapse-body {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
       }
 
       .form-group {
@@ -713,6 +765,76 @@
       </div>
 
       <div class="container">
+        <div class="card collapse-panel" id="deploy-collapse">
+          <div class="card-header collapse-header">
+            <span class="card-title">🏗️ 部署流水线</span>
+            <svg class="collapse-arrow" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M384 192l384 320-384 320z"></path>
+            </svg>
+          </div>
+          <div class="collapse-body">
+            <div class="form-group pipeline-branch-input">
+              <div class="section-title">自定义部署分支</div>
+              <input
+                type="text"
+                id="pipeline-branch-input"
+                placeholder="完整的部署分支，如：release-20260804"
+                class="input-field"
+              />
+              <!-- <div class="helper-text">
+                G 默认 uat，U 默认 stable-uat；填写后将覆盖全部流水线按钮
+              </div> -->
+              <div class="helper-text">
+                🚨 开发不要轻易部署！！！
+              </div>
+            </div>
+
+            <div>
+              <div class="section-title">部署流水线 (Frontend Deploy)</div>
+              <div class="pipeline-grid">
+                <button id="run-pipeline-btn-cost-gray" class="pipeline-btn gray">
+                  成本 <span class="tag">G</span>
+                </button>
+                <button id="run-pipeline-btn-cost-uat" class="pipeline-btn uat">
+                  成本 <span class="tag">U</span>
+                </button>
+                <button id="run-pipeline-btn-cost-zgy-uat" class="pipeline-btn uat pipeline-span-2">
+                  zgy-成本前端-uat <span class="tag">U</span>
+                </button>
+                <button id="run-pipeline-btn-public-gray" class="pipeline-btn gray">
+                  公共 <span class="tag">G</span>
+                </button>
+                <button id="run-pipeline-btn-public-uat" class="pipeline-btn uat">
+                  公共 <span class="tag">U</span>
+                </button>
+                <button id="run-pipeline-btn-target-gray" class="pipeline-btn gray">
+                  目标 <span class="tag">G</span>
+                </button>
+                <button id="run-pipeline-btn-target-uat" class="pipeline-btn uat">
+                  目标 <span class="tag">U</span>
+                </button>
+                <button id="run-pipeline-btn-income-gray" class="pipeline-btn gray">
+                  收入 <span class="tag">G</span>
+                </button>
+                <button id="run-pipeline-btn-income-uat" class="pipeline-btn uat">
+                  收入 <span class="tag">U</span>
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <div class="section-title">部署流水线 (Backend Deploy)</div>
+              <div class="pipeline-grid">
+                <button id="run-pipeline-btn-cost-backend-gray" class="pipeline-btn gray">
+                  成本 <span class="tag">G</span>
+                </button>
+                <button id="run-pipeline-btn-cost-backend-uat" class="pipeline-btn uat">
+                  成本 <span class="tag">U</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="card">
           <div class="section-title">DCS-UAT-GRAY Tools</div>
           <div class="tool-grid">
@@ -768,68 +890,6 @@
             </button>
           </div>
         </div>
-
-        <div class="card">
-          <div class="form-group pipeline-branch-input">
-            <label for="pipeline-branch-input">自定义部署分支</label>
-            <input
-              type="text"
-              id="pipeline-branch-input"
-              placeholder="完整的部署分支，不用空格"
-              class="input-field"
-            />
-            <!-- <div class="helper-text">
-              G 默认 uat，U 默认 stable-uat；填写后将覆盖全部流水线按钮
-            </div> -->
-            <div class="helper-text">
-              🚨 开发不要轻易部署！！！
-            </div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="section-title">部署流水线 (Frontend Deploy)</div>
-          <div class="pipeline-grid">
-            <button id="run-pipeline-btn-cost-gray" class="pipeline-btn gray">
-              成本 <span class="tag">G</span>
-            </button>
-            <button id="run-pipeline-btn-cost-uat" class="pipeline-btn uat">
-              成本 <span class="tag">U</span>
-            </button>
-            <button id="run-pipeline-btn-cost-zgy-uat" class="pipeline-btn uat pipeline-span-2">
-              zgy-成本前端-uat <span class="tag">U</span>
-            </button>
-            <button id="run-pipeline-btn-public-gray" class="pipeline-btn gray">
-              公共 <span class="tag">G</span>
-            </button>
-            <button id="run-pipeline-btn-public-uat" class="pipeline-btn uat">
-              公共 <span class="tag">U</span>
-            </button>
-            <button id="run-pipeline-btn-target-gray" class="pipeline-btn gray">
-              目标 <span class="tag">G</span>
-            </button>
-            <button id="run-pipeline-btn-target-uat" class="pipeline-btn uat">
-              目标 <span class="tag">U</span>
-            </button>
-            <button id="run-pipeline-btn-income-gray" class="pipeline-btn gray">
-              收入 <span class="tag">G</span>
-            </button>
-            <button id="run-pipeline-btn-income-uat" class="pipeline-btn uat">
-              收入 <span class="tag">U</span>
-            </button>
-          </div>
-        </div>
-        <div class="card">
-          <div class="section-title">部署流水线 (Backend Deploy)</div>
-          <div class="pipeline-grid">
-            <button id="run-pipeline-btn-cost-backend-gray" class="pipeline-btn gray">
-              成本 <span class="tag">G</span>
-            </button>
-            <button id="run-pipeline-btn-cost-backend-uat" class="pipeline-btn uat">
-              成本 <span class="tag">U</span>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
     <div class="settings-panel" id="settings-panel">
@@ -851,175 +911,204 @@
           </svg>
         </button>
       </div>
-      <div class="settings-content" spellcheck="false">
-        <div class="card">
-          <div class="card-header">
+      <div class="settings-content" spellcheck="false" id="settings-collapse">
+        <div class="card collapse-panel active">
+          <div class="card-header collapse-header">
+            <span class="card-title">💡 快捷选择分支映射</span>
+            <svg class="collapse-arrow" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M384 192l384 320-384 320z"></path>
+            </svg>
+          </div>
+          <div class="collapse-body">
+            <div class="form-group">
+              <label>分支映射 (JSON)</label>
+              <textarea
+                id="branch-mapping-textarea"
+                placeholder='{"8":"release-20260804","9":"release-20260903","10":"release-20261009","a":"dev","d":"stable"}'
+                rows="5"
+                class="input-field"
+              ></textarea>
+              <div class="helper-text">请输入 JSON 格式的分支映射，键为快捷值，值为目标分支名</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card collapse-panel">
+          <div class="card-header collapse-header">
             <span class="card-title">🔗 自定义快捷跳转</span>
+            <svg class="collapse-arrow" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M384 192l384 320-384 320z"></path>
+            </svg>
           </div>
-          <div class="custom-link-row">
-            <div class="form-group flex-grow">
-              <label>按钮名称</label>
-              <input
-                type="text"
-                id="btn-name-input"
-                placeholder="如：灰度"
-                class="input-field"
-              />
+          <div class="collapse-body">
+            <div class="custom-link-row">
+              <div class="form-group flex-grow">
+                <label>按钮名称</label>
+                <input
+                  type="text"
+                  id="btn-name-input"
+                  placeholder="如：灰度"
+                  class="input-field"
+                />
+              </div>
+              <div class="form-group flex-grow" style="flex: 2">
+                <label>跳转链接</label>
+                <input
+                  type="text"
+                  id="url-input"
+                  placeholder="https://..."
+                  class="input-field"
+                />
+              </div>
             </div>
-            <div class="form-group flex-grow" style="flex: 2">
-              <label>跳转链接</label>
-              <input
-                type="text"
-                id="url-input"
-                placeholder="https://..."
-                class="input-field"
-              />
-            </div>
+            <button
+              id="add-menu-button"
+              class="btn btn-primary"
+              style="width: 100%; margin-top: 8px"
+            >
+              + 添加跳转按钮
+            </button>
           </div>
-          <button
-            id="add-menu-button"
-            class="btn btn-primary"
-            style="width: 100%; margin-top: 8px"
-          >
-            + 添加跳转按钮
-          </button>
         </div>
 
-        <!-- 显示设置 -->
-        <div class="card">
-          <div class="card-header">
+        <div class="card collapse-panel">
+          <div class="card-header collapse-header">
             <span class="card-title">👁️ 显示设置</span>
+            <svg class="collapse-arrow" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M384 192l384 320-384 320z"></path>
+            </svg>
           </div>
-          <div class="switch-wrapper">
-            <label class="switch-label">仅展示自己的提交</label>
-            <label class="toggle-switch">
-              <input id="only-myself-checkbox" type="checkbox"/>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-          <div class="switch-wrapper">
-            <label class="switch-label">过滤已合并节点记录</label>
-            <label class="toggle-switch">
-              <input id="filter-merge-commit-checkbox" type="checkbox"/>
-              <span class="toggle-slider"></span>
-            </label>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">🦊 GitLab 配置</span>
-          </div>
-          <div class="form-group">
-            <label>清空我的分支排除分支</label>
-            <textarea
-              id="clear-exclude-branches-textarea"
-              placeholder="在此输入排除分支，使用英文逗号分隔，最多1000字"
-              rows="5"
-              maxlength="1000"
-              class="input-field"
-            ></textarea>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">🔀 自定义快捷选择分支映射</span>
-          </div>
-          <div class="form-group">
-            <label>分支映射 (JSON)</label>
-            <textarea
-              id="branch-mapping-textarea"
-              placeholder='{"8":"release-20260804","9":"release-20260903","10":"release-20261009","a":"dev","d":"stable"}'
-              rows="5"
-              class="input-field"
-            ></textarea>
-            <div class="helper-text">请输入 JSON 格式的分支映射，键为快捷值，值为目标分支名</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">🤖 AI 日报配置</span>
-          </div>
-          <div class="form-group">
-            <label>GitLab 邮箱</label>
-            <input
-              type="text"
-              id="email-input"
-              placeholder="例如: yourname@company.com"
-              class="input-field"
-            />
-          </div>
-          <div class="form-group">
-            <label>常用项目路径 (Project Path)</label>
-            <input
-              type="text"
-              id="project-input"
-              placeholder="例如: cip-economic/cost-react-1"
-              class="input-field"
-            />
-            <div class="helper-text">请填写 Group/Project 格式的完整路径</div>
-          </div>
-          <div class="form-group">
-            <label>提交记录分支</label>
-            <input
-              type="text"
-              id="commit-history-branch-input"
-              placeholder="例如: uat"
-              class="input-field"
-            />
-          </div>
-          <div class="form-group">
-            <label>API Key</label>
-            <input
-              type="password"
-              id="ai-key-input"
-              placeholder="在此粘贴你的 API Key"
-              class="input-field"
-            />
-          </div>
-          <div class="form-group">
-            <label>日报生成 Prompt 模板</label>
-            <textarea
-              id="prompt-input"
-              placeholder="在此输入提示词,最多200字"
-              rows="5"
-              maxlength="500"
-              class="input-field"
-            ></textarea>
-            <div class="helper-text">prompt自动拼接提交记录，无需手动输入</div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">📝 编辑器配置</span>
-          </div>
-          <div class="form-group">
-            <label>编辑器类型</label>
-            <input
-              type="text"
-              id="editor-type-input"
-              placeholder="例如: cursor, vscode"
-              class="input-field"
-            />
-          </div>
-          <div class="form-group">
-            <label>开发项目路径</label>
-            <input
-              type="text"
-              id="dev-project-path-input"
-              placeholder="绝对路径: Mac移除前面斜杠，Win不做处理"
-              class="input-field"
-            />
-            <div class="helper-text">
-              Win:<span>D:/project/common-react/src/app.tsx:454:0</span>
+          <div class="collapse-body">
+            <div class="switch-wrapper">
+              <label class="switch-label">仅展示自己的提交</label>
+              <label class="toggle-switch">
+                <input id="only-myself-checkbox" type="checkbox"/>
+                <span class="toggle-slider"></span>
+              </label>
             </div>
-            <div class="helper-text">
-              Mac:<span
-                >Users/username/project/common-react/src/app.tsx:454:0</span
-              >
+            <div class="switch-wrapper">
+              <label class="switch-label">过滤已合并节点记录</label>
+              <label class="toggle-switch">
+                <input id="filter-merge-commit-checkbox" type="checkbox"/>
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card collapse-panel">
+          <div class="card-header collapse-header">
+            <span class="card-title">🦊 GitLab 配置</span>
+            <svg class="collapse-arrow" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M384 192l384 320-384 320z"></path>
+            </svg>
+          </div>
+          <div class="collapse-body">
+            <div class="form-group">
+              <label>清空我的分支排除分支</label>
+              <textarea
+                id="clear-exclude-branches-textarea"
+                placeholder="在此输入排除分支，使用英文逗号分隔，最多1000字"
+                rows="5"
+                maxlength="1000"
+                class="input-field"
+              ></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card collapse-panel">
+          <div class="card-header collapse-header">
+            <span class="card-title">🤖 AI 日报配置</span>
+            <svg class="collapse-arrow" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M384 192l384 320-384 320z"></path>
+            </svg>
+          </div>
+          <div class="collapse-body">
+            <div class="form-group">
+              <label>GitLab 邮箱</label>
+              <input
+                type="text"
+                id="email-input"
+                placeholder="例如: yourname@company.com"
+                class="input-field"
+              />
+            </div>
+            <div class="form-group">
+              <label>常用项目路径 (Project Path)</label>
+              <input
+                type="text"
+                id="project-input"
+                placeholder="例如: cip-economic/cost-react-1"
+                class="input-field"
+              />
+              <div class="helper-text">请填写 Group/Project 格式的完整路径</div>
+            </div>
+            <div class="form-group">
+              <label>提交记录分支</label>
+              <input
+                type="text"
+                id="commit-history-branch-input"
+                placeholder="例如: uat"
+                class="input-field"
+              />
+            </div>
+            <div class="form-group">
+              <label>API Key</label>
+              <input
+                type="password"
+                id="ai-key-input"
+                placeholder="在此粘贴你的 API Key"
+                class="input-field"
+              />
+            </div>
+            <div class="form-group">
+              <label>日报生成 Prompt 模板</label>
+              <textarea
+                id="prompt-input"
+                placeholder="在此输入提示词,最多200字"
+                rows="5"
+                maxlength="500"
+                class="input-field"
+              ></textarea>
+              <div class="helper-text">prompt自动拼接提交记录，无需手动输入</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card collapse-panel">
+          <div class="card-header collapse-header">
+            <span class="card-title">📝 编辑器配置</span>
+            <svg class="collapse-arrow" viewBox="0 0 1024 1024" fill="currentColor">
+              <path d="M384 192l384 320-384 320z"></path>
+            </svg>
+          </div>
+          <div class="collapse-body">
+            <div class="form-group">
+              <label>编辑器类型</label>
+              <input
+                type="text"
+                id="editor-type-input"
+                placeholder="例如: cursor, vscode"
+                class="input-field"
+              />
+            </div>
+            <div class="form-group">
+              <label>开发项目路径</label>
+              <input
+                type="text"
+                id="dev-project-path-input"
+                placeholder="绝对路径: Mac移除前面斜杠，Win不做处理"
+                class="input-field"
+              />
+              <div class="helper-text">
+                Win:<span>D:/project/common-react/src/app.tsx:454:0</span>
+              </div>
+              <div class="helper-text">
+                Mac:<span
+                  >Users/username/project/common-react/src/app.tsx:454:0</span
+                >
+              </div>
             </div>
           </div>
         </div>

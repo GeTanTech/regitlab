@@ -269,6 +269,43 @@ class CoreController {
         handler,
       });
     }
+    // 设置页折叠面板（手风琴：同时只展开一组）
+    const collapsePanels = document.querySelectorAll(
+      "#settings-collapse .collapse-panel"
+    );
+    collapsePanels.forEach((panel) => {
+      const header = panel.querySelector(".collapse-header");
+      if (!header) return;
+      const handler = () => {
+        const isActive = panel.classList.contains("active");
+        collapsePanels.forEach((p) => p.classList.remove("active"));
+        if (!isActive) {
+          panel.classList.add("active");
+        }
+      };
+      header.addEventListener("click", handler);
+      this.eventHandlers.push({
+        element: header,
+        event: "click",
+        handler,
+      });
+    });
+    // 主页部署流水线折叠（默认收起，独立开关）
+    const deployCollapse = document.getElementById("deploy-collapse");
+    if (deployCollapse) {
+      const header = deployCollapse.querySelector(".collapse-header");
+      if (header) {
+        const handler = () => {
+          deployCollapse.classList.toggle("active");
+        };
+        header.addEventListener("click", handler);
+        this.eventHandlers.push({
+          element: header,
+          event: "click",
+          handler,
+        });
+      }
+    }
     // 添加跳转按钮
     const addMenuButton = document.getElementById("add-menu-button");
     if (addMenuButton) {

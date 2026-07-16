@@ -95,7 +95,7 @@ async function initLocalStorage() {
     prompt: "根据我的gitlab提交记录生成简短日报;格式:仅输出紧凑的JSON数组字符串，格式为 [{\"Cname\":\"内容\",\"date\":\"YYYY-MM-DD\"},...]。严禁包含换行符、空格、代码块标记或加粗符号。字数:每天的Cname内容不超过100字。内容重点：如包含“生产”、“开发”相关任务，需具体描述并优先保留，描述需具体，避免笼统或假大空。内容如下:",
     project: "cip-economic/cost-react-1",
     editorType: "vscode",
-    commitHistoryBranch: "uat",
+    commitHistoryBranch: "dev",
     onlyMyself: false,
     filterMergeCommit: false,
     branchMapping: JSON.stringify({"a":"dev","d":"stable","8":"release-20260804","9":"release-20260903","10":"release-20261009"})
