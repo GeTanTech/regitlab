@@ -943,6 +943,7 @@ class GitlabService {
    * 清空我的分支
    */
   clearMyBranches = async ({ tab }) => {
+    const buttonId = "clear-my-branches-btn";
     const project = this.commonHelper.vaildUrlFormat("my_branches", tab.url);
     if (!project) {
       this.commonHelper.showMessage(
@@ -950,49 +951,54 @@ class GitlabService {
       );
       return;
     }
-    const response = await chrome.runtime.sendMessage({
-      action: "getMyBranches",
-      data: { project },
-    });
-    let branches = [];
-    if (response && response.code === 0 && response.data) {
-      const lists = response.data?.list || [];
-      branches = lists.map((item) => item?.name).filter(Boolean);
-    }
-    const clearExcludeBranches = await this.commonHelper.getLocalStorage(
-      "userInfo",
-      "clearExcludeBranches"
-    );
-    if (clearExcludeBranches) {
-      try {
-        const excludeBranches = clearExcludeBranches
-          .split(",")
-          .map((item) => item.trim())
-          ?.filter(Boolean);
-        if (excludeBranches.length) {
-          branches = branches.filter(
-            (branch) => !excludeBranches.includes(branch)
-          );
+    this.commonHelper.setButtonLoading(buttonId, true);
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: "getMyBranches",
+        data: { project },
+      });
+      let branches = [];
+      if (response && response.code === 0 && response.data) {
+        const lists = response.data?.list || [];
+        branches = lists.map((item) => item?.name).filter(Boolean);
+      }
+      const clearExcludeBranches = await this.commonHelper.getLocalStorage(
+        "userInfo",
+        "clearExcludeBranches"
+      );
+      if (clearExcludeBranches) {
+        try {
+          const excludeBranches = clearExcludeBranches
+            .split(",")
+            .map((item) => item.trim())
+            ?.filter(Boolean);
+          if (excludeBranches.length) {
+            branches = branches.filter(
+              (branch) => !excludeBranches.includes(branch)
+            );
+          }
+        } catch (error) {
+          this.commonHelper.showMessage("配置填写错误，请检查");
+          return;
         }
-      } catch (error) {
-        this.commonHelper.showMessage("配置填写错误，请检查");
+      }
+      if (branches.length === 0) {
+        this.commonHelper.showMessage("没有需要清空的分支");
         return;
       }
-    }
-    if (branches.length === 0) {
-      this.commonHelper.showMessage("没有需要清空的分支");
-      return;
-    }
-    const deleteResponse = await chrome.runtime.sendMessage({
-      action: "clearBranches",
-      data: { branches: branches, project },
-    });
-    if (deleteResponse && deleteResponse.code === 0) {
-      this.commonHelper.showMessage("清空我的分支成功", "success");
-      this.commonHelper.reloadPage();
-      this.commonHelper.closeWindow();
-    } else {
-      this.commonHelper.showMessage("清空我的分支失败");
+      const deleteResponse = await chrome.runtime.sendMessage({
+        action: "clearBranches",
+        data: { branches: branches, project },
+      });
+      if (deleteResponse && deleteResponse.code === 0) {
+        this.commonHelper.showMessage("清空我的分支成功", "success");
+        this.commonHelper.reloadPage();
+        this.commonHelper.closeWindow();
+      } else {
+        this.commonHelper.showMessage("清空我的分支失败");
+      }
+    } finally {
+      this.commonHelper.setButtonLoading(buttonId, false);
     }
   };
   /**
@@ -1060,7 +1066,11 @@ class GitlabService {
         glxq,
         name,
         status,
-      } = result?.result;
+      } = result?.result || {};
+      if(!version || !key || !type || !userId) {
+        this.commonHelper.showMessage("非缺陷抽屉，无法获取提交文本");
+        return;
+      }
       if(status == "激活" || status == "缺陷确认" || status == ""){
         this.commonHelper.showMessage("流转到解决中及以后状态可获取提交文本");
         return;
