@@ -715,6 +715,7 @@ class CommonHelper {
     const btn = document.getElementById(buttonId);
     if (btn) {
       btn.disabled = loading;
+      btn.classList.toggle("is-loading", loading);
       if (loading) {
         if (!btn.querySelector(".loading-spinner")) {
           const spinner = document.createElement("span");

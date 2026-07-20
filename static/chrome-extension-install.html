@@ -5,134 +5,332 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>regitlab 使用指南</title>
     <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2c3e50;
+            --text-main: #2c3e50;
+            --text-sub: #7f8c8d;
+            --bg: #f8f9fa;
+            --border: #e5e7eb;
+            --code-bg: #eef2f7;
+            --tip: #3498db;
+            --tip-bg: #ebf5fb;
+            --warn: #fa8c16;
+            --warn-bg: #fff7e6;
+            --danger: #ff4d4f;
+            --danger-bg: #fff2f0;
+            --success: #52c41a;
+        }
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 800px;
+            line-height: 1.7;
+            max-width: 860px;
             margin: 0 auto;
-            padding: 20px;
-            color: #333;
+            padding: 24px 20px 60px;
+            color: var(--text-main);
+            background: #fff;
         }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 2px solid #3498db;
-            padding-bottom: 10px;
+        .hero {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: #fff;
+            border-radius: 12px;
+            padding: 28px 32px;
+            margin-bottom: 28px;
+            box-shadow: 0 4px 16px rgba(52, 152, 219, 0.25);
         }
+        .hero h1 {
+            margin: 0 0 6px;
+            font-size: 26px;
+            border: none;
+            color: #fff;
+            padding: 0;
+        }
+        .hero .meta {
+            font-size: 13px;
+            opacity: 0.85;
+        }
+        .hero .meta span + span::before { content: " · "; margin: 0 4px; }
         h2 {
+            color: var(--primary-dark);
+            margin-top: 36px;
+            font-size: 20px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid var(--primary);
+        }
+        h3 {
             color: #34495e;
-            margin-top: 30px;
+            margin-top: 22px;
+            font-size: 16px;
         }
-        .last-updated {
-            color: #7f8c8d;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
-        .step {
-            background-color: #f8f9fa;
-            padding: 15px;
-            margin: 15px 0;
-            border-left: 4px solid #3498db;
-        }
+        p { margin: 10px 0; }
+        ul, ol { padding-left: 22px; }
+        li { margin: 6px 0; }
         code {
-            background-color: #e9ecef;
+            background: var(--code-bg);
             padding: 2px 6px;
-            border-radius: 3px;
-            font-family: "Courier New", monospace;
+            border-radius: 4px;
+            font-family: "SFMono-Regular", "Courier New", monospace;
+            font-size: 0.9em;
+            color: #c0392b;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 14px 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+        pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        .card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--primary);
+            border-radius: 8px;
+            padding: 14px 18px;
+            margin: 14px 0;
+        }
+        .tip {
+            background: var(--tip-bg);
+            border-left: 4px solid var(--tip);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+        .tip strong { color: var(--tip); }
+        .warning {
+            background: var(--warn-bg);
+            border-left: 4px solid var(--warn);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+        .warning strong { color: var(--warn); }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 14px 0;
+            font-size: 14px;
+        }
+        th, td {
+            border: 1px solid var(--border);
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: var(--code-bg);
+            font-weight: 600;
+            color: var(--primary-dark);
+        }
+        tr:nth-child(even) td { background: #fafbfc; }
+        .tag-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 8px 0;
+        }
+        .pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #fff;
+            background: #95a5a6;
+        }
+        .pill.gray { background: #7f8c8d; }
+        .pill.uat { background: #2980b9; }
+        .pill.pre { background: #8e44ad; }
+        .pill.zgy { background: #c0392b; }
+        .faq { margin: 12px 0; }
+        .faq q {
+            display: block;
+            font-weight: 600;
+            color: var(--primary-dark);
+            margin-bottom: 4px;
+        }
+        .faq q::before { content: "Q："; color: var(--primary); }
+        .faq a {
+            display: block;
+            color: var(--text-sub);
+        }
+        .faq a::before { content: "A："; color: var(--success); font-weight: 600; }
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 36px 0 16px;
+        }
+        footer {
+            text-align: center;
+            color: var(--text-sub);
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
-    <h1>regitlab 使用指南</h1>
-    <p class="last-updated">最后更新日期：2026年2月</p>
+    <div class="hero">
+        <h1>🚀 regitlab 使用指南</h1>
+        <div class="meta">
+            <span>版本 v0.2.8</span>
+            <span>最后更新：2026 年 7 月</span>
+        </div>
+    </div>
+
+    <p>regitlab 是面向 cscec GitLab/DCS 环境的 Chrome 扩展，提供分支快速选择、Pull Request 自动化、一键部署流水线、灰度用户信息获取与 AI 日报生成等协同工具。安装后建议将扩展固定到工具栏。</p>
+
+    <div class="tip">
+        <strong>支持的域名：</strong>插件在以下域名下工作——
+        <code>https://devops.cscec.com/*</code>（GitLab 主站）、
+        <code>https://dcs-uat-gray.cscec.com/*</code>、
+        <code>https://dcs-uat.cscec.com/*</code>、
+        <code>https://dcs-pre.cscec.com/*</code>、
+        <code>https://dcs.cscec.com/*</code>（DCS 系列）；
+        「sync local.user」功能还会在 <code>http://localhost/*</code> 与 <code>http://127.0.0.1/*</code> 下注入本地存储。
+    </div>
 
     <h2>1. 初始配置</h2>
-    <p>安装插件后，建议先固定扩展到浏览器工具栏，然后打开 regitlab 插件，点击右上角齿轮进入设置页面。</p>
-    <h3>1.1 配置编辑器类型</h3>
-    <p>选择您常用的编辑器类型（如 cursor、vscode），并填写开发项目在本地的绝对路径。用于一键复制灰度用户信息后，自动打开对应编辑器到指定文件与行号。</p>
-    <p>建议不要配置，不配置时仅复制用户信息到剪贴板，不会自动打开编辑器。然后启动本地 http://localhost 页面，在插件弹窗中点击「💾 同步 udp_dev_user」，即可将用户信息注入当前页的 LocalStorage（<code>udp_dev_user</code>），便于本地使用与灰度一致的登录态。</p>
-    
-    <h3>1.2 配置排除分支</h3>
-    <p>在「清空我的分支」前，将不允许被清除的分支名添加到「清空我的分支排除分支」中，规则：使用英文逗号分隔，最多 1000 字。</p>
+    <p>点击插件弹窗右上角 ⚙️ 齿轮进入设置页面，按需配置以下分组（均可选）。</p>
 
-    <h3>1.3 AI 日报配置</h3>
-    <p>在设置页「🤖 AI 日报配置」中填写：</p>
+    <h3>1.1 快捷选择分支映射</h3>
+    <p>以 JSON 格式自定义「快捷值 → 目标分支」映射，在 GitLab 分支选择时输入快捷值即可跳转。推荐用<strong>数字</strong>映射 release 各月备份分支，用 <strong>a/b/c/d</strong> 映射 dev、stable 等主分支。</p>
+    <pre><code>{"8":"release-20260804","9":"release-20260903","10":"release-20261009","a":"dev","d":"stable"}</code></pre>
+
+    <h3>1.2 自定义快捷跳转</h3>
+    <p>添加常用链接按钮，显示在插件弹窗顶部，便于快速跳转到灰度、GitLab 等常用页面。输入按钮名称（如「灰度」）和跳转链接，点击「+ 添加跳转按钮」即可。</p>
+
+    <h3>1.3 显示设置</h3>
+    <p>可开启两个开关：</p>
     <ul>
-        <li><strong>GitLab 邮箱</strong>：用于查询您的提交记录。（必填：如果这个邮箱不存在，则无法查询提交记录，无法配合仅展示自己的提交功能）</li>
-        <li><strong>常用项目路径 (Project Path)</strong>：Group/Project 格式，如 <code>cip-economic/cost-react-1</code>，结合邮箱获取该项目下的提交记录。</li>
-        <li><strong>提交记录分支</strong>：查询提交记录时使用的分支，如 <code>uat</code>。（可不填则使用默认分支）</li>
-        <li><strong>API Key</strong>：用于调用 AI 自动生成日报内容。（可不填，则仅展示提交记录）</li>
-        <li><strong>日报生成 Prompt 模板</strong>：控制生成格式与风格，最多 200 字；会自动拼接提交记录，无需在模板里重复写。（可不填则使用默认提示词）</li>
+        <li><strong>仅展示自己的提交</strong>：在提交记录相关页面只看到自己的提交。</li>
+        <li><strong>过滤已合并节点记录</strong>：过滤 merge 节点记录。</li>
+    </ul>
+    <div class="warning"><strong>注意：</strong>开启「仅展示自己的提交」前，请先在「AI 日报配置」中填写正确的 GitLab 邮箱，否则无法查询提交记录。</div>
+
+    <h3>1.4 GitLab 配置</h3>
+    <p><strong>清空我的分支排除分支</strong>：使用「🗑 清空我的分支」时，填在此处的分支不会被清除。规则：英文逗号分隔，最多 1000 字。</p>
+
+    <h3>1.5 AI 日报配置</h3>
+    <ul>
+        <li><strong>GitLab 邮箱</strong>（必填）：用于查询提交记录；邮箱不存在则无法查询，也无法配合「仅展示自己的提交」。</li>
+        <li><strong>常用项目路径</strong>：Group/Project 格式，如 <code>cip-economic/cost-react-1</code>。</li>
+        <li><strong>提交记录分支</strong>：查询提交记录所用分支，如 <code>uat</code>（可不填，则用默认分支）。</li>
+        <li><strong>API Key</strong>：调用 AI 生成日报的密钥（可不填，则仅展示提交记录）。</li>
+        <li><strong>日报生成 Prompt 模板</strong>：控制生成格式与风格，最多 200 字；会自动拼接提交记录，无需在模板里重复写（可不填，则用默认提示词）。</li>
     </ul>
 
-    <h3>1.4 显示设置</h3>
-    <p>在设置页「👁️ 显示设置」中可开启：<strong>仅展示自己的提交</strong>、<strong>过滤已合并节点记录</strong>，用于在相关页面只看到自己的提交并过滤 merge 记录。（开启前检查「AI 日报配置」中的 GitLab 邮箱是否存在，否则无法查询提交记录，无法配合仅展示自己的提交功能）</p>
+    <h3>1.6 编辑器配置</h3>
+    <p>配置编辑器类型（如 <code>cursor</code>、<code>vscode</code>）与开发项目路径，用于获取灰度用户信息后自动打开编辑器到指定文件与行号。</p>
+    <div class="tip">
+        <strong>路径填写差异：</strong>Mac 需移除开头的斜杠，Win 不做处理。
+        <br>Win 示例：<code>D:/project/common-react/src/app.tsx:454:0</code>
+        <br>Mac 示例：<code>Users/username/project/common-react/src/app.tsx:454:0</code>
+        <br><strong>建议不配置</strong>：不配置时仅复制用户信息到剪贴板，不会自动打开编辑器。
+    </div>
 
     <h2>2. 主要功能</h2>
 
-    <h3>2.1 分支快速选择</h3>
-    <p>在 GitLab 项目页面，插件会自动增强分支选择功能，帮助您快速切换和选择分支。</p>
-    <div class="step">
-        <p>在分支选择下拉框中，1表示dev，2表示uat，3表示stable-uat，4表示stable</p>
+    <h3>2.1 部署流水线</h3>
+    <p>在 GitLab 项目页面，通过插件弹窗「🏗️ 部署流水线」面板快速触发部署。可先在「自定义部署分支」输入框手动输入分支，或点击下方内置预设分支快速填入。</p>
+    <p><strong>Frontend Deploy（前端，共 10 个）：</strong></p>
+    <table>
+        <thead><tr><th>项目</th><th>可用环境</th></tr></thead>
+        <tbody>
+            <tr><td>成本</td><td><span class="pill gray">GRAY</span> <span class="pill uat">UAT</span> <span class="pill pre">PRE</span> <span class="pill zgy">ZGY</span></td></tr>
+            <tr><td>公共</td><td><span class="pill gray">GRAY</span> <span class="pill uat">UAT</span></td></tr>
+            <tr><td>目标</td><td><span class="pill gray">GRAY</span> <span class="pill uat">UAT</span></td></tr>
+            <tr><td>收入</td><td><span class="pill gray">GRAY</span> <span class="pill uat">UAT</span></td></tr>
+        </tbody>
+    </table>
+    <p><strong>Backend Deploy（后端，共 2 个）：</strong></p>
+    <table>
+        <thead><tr><th>项目</th><th>可用环境</th></tr></thead>
+        <tbody>
+            <tr><td>成本</td><td><span class="pill gray">GRAY</span> <span class="pill uat">UAT</span></td></tr>
+        </tbody>
+    </table>
+    <div class="warning"><strong>⚠️ 警告：</strong>开发不要轻易部署！触发前请确认分支与环境正确。</div>
+
+    <h3>2.2 分支快速选择</h3>
+    <p>在 GitLab 项目页面的分支选择下拉框中，输入你在「快捷选择分支映射」中配置的快捷值，即可快速跳转到对应分支。流水线手动部署时可借此快速返回 dev、uat、stable-uat、stable 等分支（原接口较慢且通常失败 2-3 次，此功能可加速）。</p>
+
+    <h3>2.3 创建 / 接受 Pull Request</h3>
+    <p>在 GitLab Workflow 面板中：</p>
+    <ul>
+        <li><strong>✨ 创建 Pull Request</strong>：快速创建 PR 并自动填充相关信息。</li>
+        <li><strong>✅ 接受 Pull Request</strong>：简化接受流程，快速合并。</li>
+    </ul>
+
+    <h3>2.4 生成本周 / 上周日报</h3>
+    <p>点击「📅 本周日报」或「⏮ 上周日报」，会根据配置的邮箱与项目路径自动查询提交记录并展示；若已配置 API Key 与提示词，会进一步调用 AI 生成日报内容，支持一键复制。</p>
+
+    <h3>2.5 生成 commit 文本</h3>
+    <p>在 GitLab 缺陷抽屉页面，点击「📝 生成commit文本」，插件会读取页面中的版本号、缺陷号、类型（bugfix/feat）、用户 ID、关联需求与缺陷内容，自动生成规范的 commit 文本。非缺陷抽屉页面会提示「无法获取提交文本」。</p>
+
+    <h3>2.6 清空我的分支</h3>
+    <p>点击「🗑 清空我的分支」可批量清除自己名下的分支，已在「GitLab 配置」中排除的分支不会被清除。</p>
+
+    <h3>2.7 获取灰度用户信息（$udp.getUser）</h3>
+    <p>在灰度环境页面（DCS-UAT-GRAY），点击「🔍 $udp.getUser」可一键获取当前灰度用户信息并复制到剪贴板；若已配置编辑器，还会自动打开对应编辑器到指定文件与行号。</p>
+
+    <h3>2.8 同步用户信息到本地（sync local.user）</h3>
+    <p>先在灰度环境页面点击「🔍 $udp.getUser」复制用户信息，再打开需要联调的 <code>http://localhost</code> 页面，在插件弹窗中点击「💾 sync local.user」，即可将剪贴板中的用户信息注入当前页 LocalStorage（键名 <code>UDP_DEV_USER</code>），便于本地使用与灰度一致的登录态。</p>
+
+    <h3>2.9 DCS 菜单搜索自动聚焦</h3>
+    <p>在 DCS 系列页面（dcs-uat-gray / dcs-uat / dcs-pre / dcs），打开菜单搜索时插件会自动聚焦「请输入菜单名称」输入框，免去手动点击即可输入搜索。</p>
+
+    <h2>3. 推荐 AI Prompt</h2>
+    <div class="card">
+        根据我的 gitlab 提交记录生成简短日报；格式：仅输出紧凑的 JSON 数组字符串，格式为 <code>[{"Cname":"内容","date":"YYYY-MM-DD"},...]</code>。严禁包含换行符、空格、代码块标记或加粗符号。字数：每天的 Cname 内容不超过 50 字。内容重点：如包含「生产」「开发」相关任务，需具体描述并优先保留，描述需具体，避免笼统或假大空。内容如下：
     </div>
-    <p>流水线手动部署时，快速返回dev、uat、stable-uat、stable分支，供选择（原接口特别慢，且通常失败2-3次）。</p>
-
-    <h3>2.2 创建 Pull Request / 接受 Pull Request</h3>
-    <p>使用插件可以快速创建 Pull Request，自动填充相关信息，随后可以快速接受 Pull Request，简化接受流程。</p>
-
-    <h3>2.3 生成本周/上周日报</h3>
-    <p>在插件弹窗「GitLab Workflow」中点击「📅 本周日报」或「⏮ 上周日报」，会根据配置的邮箱与项目路径自动查询提交记录并展示；若已配置 API Key 与提示词，会进一步调用 AI 生成日报内容，支持一键复制。</p>
-
-    <h3>2.4 运行部署流水线</h3>
-    <p>在 GitLab 项目页面，可通过插件快速触发部署流水线。当前支持：<strong>成本</strong>、<strong>公共</strong>、<strong>目标</strong>、<strong>收入</strong> 四类流水线，每类均有 GRAY（灰度）与 UAT 环境，共 8 个一键触发按钮。</p>
-
-    <h3>2.5 一键获取灰度环境用户信息（$udp.getUser）</h3>
-    <p>在灰度环境页面（DCS-UAT-GRAY），点击「🔍 $udp.getUser」可一键获取当前灰度用户信息，复制到剪贴板，并根据编辑器配置打开对应编辑器到指定文件与行号。</p>
-
-    <h3>2.6 同步 udp_dev_user 到本地</h3>
-    <p>在灰度环境页面先点击「🔍 $udp.getUser」复制用户信息到剪贴板，再打开需要联调的 <code>http://localhost</code> 页面，在插件弹窗中点击「💾 同步 udp_dev_user」，即可将用户信息注入当前页的 LocalStorage（<code>udp_dev_user</code>），便于本地使用与灰度一致的登录态。</p>
-
-    <h2>3. 自定义快捷跳转</h2>
-    <p>在设置页「🔗 自定义快捷跳转」中可添加常用链接按钮，显示在插件弹窗顶部，用于快速跳转到灰度、GitLab 等常用页面。</p>
-    <p>输入按钮名称（如「灰度」）和跳转链接，点击「+ 添加跳转按钮」即可。</p>
-    <p>参考：可以自定义灰度的一些常用菜单的地址，快速跳转到对应页面。</p>
 
     <h2>4. 使用场景</h2>
     <ul>
         <li>快速创建和接受 Pull Request</li>
-        <li>查看和管理个人提交记录，生成本周/上周日报</li>
-        <li>自动生成工作周报</li>
-        <li>快速切换 GitLab 分支（1=dev, 2=uat, 3=stable-uat, 4=stable）</li>
-        <li>一键触发部署流水线（成本/公共/目标/收入 × GRAY/UAT）</li>
+        <li>查看个人提交记录，生成本周 / 上周日报</li>
+        <li>在缺陷抽屉页面一键生成规范 commit 文本</li>
+        <li>快速切换 GitLab 分支（自定义快捷值映射）</li>
+        <li>一键触发部署流水线（前端 10 + 后端 2，覆盖 GRAY/UAT/PRE/ZGY）</li>
         <li>一键获取灰度用户信息并打开编辑器，或同步到 localhost 用于本地联调</li>
-        <li>推荐提示词：根据我的gitlab提交记录生成简短日报;格式:仅输出紧凑的JSON数组字符串，格式为 [{"Cname":"内容","date":"YYYY-MM-DD"},...]。严禁包含换行符、空格、代码块标记或加粗符号。字数:每天的Cname内容不超过50字。内容重点：如包含“生产”、“开发”相关任务，需具体描述并优先保留，描述需具体，避免笼统或假大空。内容如下:</li>
     </ul>
 
     <h2>5. 注意事项</h2>
     <ul>
-        <li>插件在以下域名下工作：<code>https://devops.cscec.com/*</code>、<code>https://dcs-uat-gray.cscec.com/*</code>；「同步 udp_dev_user」功能还会在 <code>http://localhost/*</code> 下注入本地存储</li>
-        <li>所有配置数据均存储在浏览器本地，不会上传到任何服务器</li>
-        <li>使用 AI 功能时，数据会发送到 AI 服务，请确保您已妥善保管 API Key</li>
-        <li>卸载插件时，所有本地存储的数据会被清除</li>
+        <li>所有配置数据均存储在浏览器本地，不会上传到任何服务器。</li>
+        <li>使用 AI 功能时，提交记录会发送到 AI 服务，请妥善保管 API Key。</li>
+        <li>卸载插件时，本地存储的配置数据会被清除。</li>
+        <li>部署流水线触发前请二次确认分支与环境，避免误部署。</li>
     </ul>
 
     <h2>6. 常见问题</h2>
-    
-    <h3>Q: 插件无法正常工作？</h3>
-    <p>A: 请确保您访问的是支持的 GitLab 域名，并且已正确配置邮箱和项目名称。</p>
-
-    <h3>Q: 周报生成功能无法使用？</h3>
-    <p>A: 请检查是否已正确配置 API Key，并确保网络连接正常。</p>
-
-    <h3>Q: 如何清除所有配置？</h3>
-    <p>A: 可以在插件设置页面手动删除各项配置，或卸载插件后重新安装。</p>
-
-    <h3>Q: 「同步 udp_dev_user」提示剪切板为空？</h3>
-    <p>A: 需先在灰度环境（dcs-uat-gray）页面点击「🔍 $udp.getUser」复制用户信息，再在 localhost 标签页中打开插件并点击「💾 同步 udp_dev_user」。</p>
+    <div class="faq">
+        <q>插件无法正常工作？</q>
+        <a>请确保访问的是支持的域名（见顶部说明），并已在设置中正确配置邮箱和项目路径。</a>
+    </div>
+    <div class="faq">
+        <q>日报生成功能无法使用？</q>
+        <a>请检查是否已正确配置 API Key 与 GitLab 邮箱，并确保网络连接正常；未配置 API Key 时仅展示提交记录。</a>
+    </div>
+    <div class="faq">
+        <q>「生成commit文本」提示无法获取？</q>
+        <a>该功能仅在 GitLab 缺陷抽屉页面可用，需页面中存在缺陷信息（版本号、缺陷号、用户 ID 等）。</a>
+    </div>
+    <div class="faq">
+        <q>「sync local.user」提示剪切板为空？</q>
+        <a>需先在灰度环境（dcs-uat-gray）页面点击「🔍 $udp.getUser」复制用户信息，再在 localhost 标签页打开插件点击「💾 sync local.user」。</a>
+    </div>
+    <div class="faq">
+        <q>如何清除所有配置？</q>
+        <a>可在设置页面手动删除各项配置，或卸载插件后重新安装。</a>
+    </div>
 
     <hr>
-    <p style="text-align: center; color: #7f8c8d; font-size: 12px; margin-top: 40px;">
-        © 2026 regitlab. 保留所有权利。
-    </p>
+    <footer>© 2026 regitlab. 保留所有权利。</footer>
 </body>
 </html>
-

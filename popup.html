@@ -252,6 +252,7 @@
       }
 
       .pipeline-btn {
+        position: relative;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -697,6 +698,23 @@
         aspect-ratio: 1 / 1;
         flex: 0 0 auto;
         margin-right: 4px;
+      }
+
+      /* loading 状态：spinner 绝对定位居中悬浮，文字隐藏但保留占位，
+         避免插入 spinner 后挤压文字导致内容整体右移 */
+      .pipeline-btn.is-loading {
+        color: transparent;
+      }
+      .pipeline-btn.is-loading .tag {
+        visibility: hidden;
+      }
+      .pipeline-btn.is-loading .loading-spinner {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        margin: auto;
       }
 
       @keyframes spin {
