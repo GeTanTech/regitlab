@@ -17,6 +17,8 @@
         --danger-border: #f5c6c6;
         --success: #10b981;
         --uat-color: #f59e0b;
+        --pre-color: #10b981;
+        --zgy-color: #8b5cf6;
         --gray-color: #6366f1;
         --border-color: #d1d5db;
         --input-bg: #f9fafb;
@@ -253,7 +255,8 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 6px 12px;
+        gap: 6px;
+        padding: 6px 8px;
         min-height: 30px;
         border-radius: 6px;
         font-size: 12px;
@@ -284,16 +287,45 @@
         font-size: 13px;
       }
 
+      .pipeline-branch-presets {
+        margin-top: 8px;
+        max-height: none;
+      }
+
+      .pipeline-branch-presets .chip {
+        height: 20px;
+        padding: 0 5px;
+        font-size: 11px;
+        border-radius: 4px;
+        background-color: #f3f4f6;
+        color: var(--text-main);
+        border-color: #e5e7eb;
+      }
+
+      .pipeline-branch-presets .chip:hover {
+        border-color: var(--primary);
+        background-color: #eef2ff;
+        color: var(--primary);
+      }
+
+      .pipeline-branch-presets .chip.active {
+        background-color: var(--primary);
+        color: #fff;
+        border-color: var(--primary);
+      }
+
       .pipeline-branch-input .helper-text {
         margin-top: 6px;
         line-height: 1.4;
       }
 
       .tag {
-        font-size: 10px;
+        flex-shrink: 0;
+        font-size: 9px;
         background: rgba(255, 255, 255, 0.2);
-        padding: 1px 4px;
-        border-radius: 4px;
+        padding: 2px 4px;
+        border-radius: 3px;
+        letter-spacing: 0.02em;
       }
 
       .gray {
@@ -301,6 +333,12 @@
       }
       .uat {
         background-color: var(--uat-color);
+      }
+      .pre {
+        background-color: var(--pre-color);
+      }
+      .zgy {
+        background-color: var(--zgy-color);
       }
 
       .chip-container {
@@ -778,12 +816,14 @@
               <input
                 type="text"
                 id="pipeline-branch-input"
-                placeholder="完整的部署分支，如：release-20260804"
+                placeholder="手动输入，或点击下方内置分支"
                 class="input-field"
+                autocomplete="off"
               />
-              <!-- <div class="helper-text">
-                G 默认 uat，U 默认 stable-uat；填写后将覆盖全部流水线按钮
-              </div> -->
+              <div
+                id="pipeline-branch-presets"
+                class="chip-container pipeline-branch-presets"
+              ></div>
               <div class="helper-text">
                 🚨 开发不要轻易部署！！！
               </div>
@@ -793,31 +833,34 @@
               <div class="section-title">部署流水线 (Frontend Deploy)</div>
               <div class="pipeline-grid">
                 <button id="run-pipeline-btn-cost-gray" class="pipeline-btn gray">
-                  成本 <span class="tag">G</span>
+                  成本 <span class="tag">GRAY</span>
                 </button>
                 <button id="run-pipeline-btn-cost-uat" class="pipeline-btn uat">
-                  成本 <span class="tag">U</span>
+                  成本 <span class="tag">UAT</span>
                 </button>
-                <button id="run-pipeline-btn-cost-zgy-uat" class="pipeline-btn uat pipeline-span-2">
-                  zgy-成本前端-uat <span class="tag">U</span>
+                <button id="run-pipeline-btn-cost-pre" class="pipeline-btn pre">
+                  成本 <span class="tag">PRE</span>
+                </button>
+                <button id="run-pipeline-btn-cost-zgy" class="pipeline-btn zgy">
+                  成本 <span class="tag">ZGY</span>
                 </button>
                 <button id="run-pipeline-btn-public-gray" class="pipeline-btn gray">
-                  公共 <span class="tag">G</span>
+                  公共 <span class="tag">GRAY</span>
                 </button>
                 <button id="run-pipeline-btn-public-uat" class="pipeline-btn uat">
-                  公共 <span class="tag">U</span>
+                  公共 <span class="tag">UAT</span>
                 </button>
                 <button id="run-pipeline-btn-target-gray" class="pipeline-btn gray">
-                  目标 <span class="tag">G</span>
+                  目标 <span class="tag">GRAY</span>
                 </button>
                 <button id="run-pipeline-btn-target-uat" class="pipeline-btn uat">
-                  目标 <span class="tag">U</span>
+                  目标 <span class="tag">UAT</span>
                 </button>
                 <button id="run-pipeline-btn-income-gray" class="pipeline-btn gray">
-                  收入 <span class="tag">G</span>
+                  收入 <span class="tag">GRAY</span>
                 </button>
                 <button id="run-pipeline-btn-income-uat" class="pipeline-btn uat">
-                  收入 <span class="tag">U</span>
+                  收入 <span class="tag">UAT</span>
                 </button>
               </div>
             </div>
@@ -826,10 +869,10 @@
               <div class="section-title">部署流水线 (Backend Deploy)</div>
               <div class="pipeline-grid">
                 <button id="run-pipeline-btn-cost-backend-gray" class="pipeline-btn gray">
-                  成本 <span class="tag">G</span>
+                  成本 <span class="tag">GRAY</span>
                 </button>
                 <button id="run-pipeline-btn-cost-backend-uat" class="pipeline-btn uat">
-                  成本 <span class="tag">U</span>
+                  成本 <span class="tag">UAT</span>
                 </button>
               </div>
             </div>

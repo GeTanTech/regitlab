@@ -449,12 +449,22 @@ class CoreController {
   pipelineAndListeners = () => {
     const container = document.querySelector(".container");
     if (!container) return;
+    this.pipelineService.renderPresetBranches();
     const wrappedHandler = this.wrapHandler(
       this.pipelineService.runPipeline,
       ["devops"],
       []
     );
     const handler = (event) => {
+      const presetChip = event.target.closest(
+        "#pipeline-branch-presets .chip[data-branch]"
+      );
+      if (presetChip && container.contains(presetChip)) {
+        this.pipelineService.selectPresetBranch(
+          presetChip.getAttribute("data-branch")
+        );
+        return;
+      }
       const button = event.target.closest('button[id^="run-pipeline-btn-"]');
       if (!button || !container.contains(button)) return;
       const config = this.pipelineService.getPipelineRunConfigByButtonId(
@@ -469,6 +479,18 @@ class CoreController {
       event: "click",
       handler,
     });
+    const branchInput = document.getElementById("pipeline-branch-input");
+    if (branchInput) {
+      const inputHandler = () => {
+        this.pipelineService.syncPresetActiveState();
+      };
+      branchInput.addEventListener("input", inputHandler);
+      this.eventHandlers.push({
+        element: branchInput,
+        event: "input",
+        handler: inputHandler,
+      });
+    }
   };
   removeEventListener = () => {
     this.eventHandlers.forEach(({ element, event, handler }) => {
@@ -1255,6 +1277,7 @@ class GitlabService {
 class PipelineService {
   constructor() {
     this.commonHelper = new CommonHelper();
+    this.presetBranches = ["release-20260804", "release-20260903", "release-20261009", "hotfix/", "bugfix/", "release-", "feature/", "dev"];
     this.pipelineCommonConfig = {
       params: {
         APP_VERSION: "1.12.0",
@@ -1271,7 +1294,11 @@ class PipelineService {
           branch: "stable-uat",
           pipelineConfId: 876,
         },
-        "zgy-uat": {
+        pre: {
+          branch: "stable",
+          pipelineConfId: 2207,
+        },
+        zgy: {
           branch: "stable-uat",
           pipelineConfId: 4194,
         }
@@ -1340,6 +1367,39 @@ class PipelineService {
     const input = document.getElementById("pipeline-branch-input");
     const value = input?.value?.trim();
     return value || null;
+  };
+
+  renderPresetBranches = () => {
+    const container = document.getElementById("pipeline-branch-presets");
+    if (!container) return;
+    container.innerHTML = this.presetBranches
+      .map(
+        (branch) =>
+          `<button type="button" class="chip" data-branch="${branch}">${branch}</button>`
+      )
+      .join("");
+    this.syncPresetActiveState();
+  };
+
+  selectPresetBranch = (branch) => {
+    if (!branch) return;
+    const input = document.getElementById("pipeline-branch-input");
+    if (!input) return;
+    input.value = branch;
+    input.focus();
+    this.syncPresetActiveState();
+  };
+
+  syncPresetActiveState = () => {
+    const container = document.getElementById("pipeline-branch-presets");
+    const current = this.getCustomBranch();
+    if (!container) return;
+    container.querySelectorAll(".chip[data-branch]").forEach((chip) => {
+      chip.classList.toggle(
+        "active",
+        chip.getAttribute("data-branch") === current
+      );
+    });
   };
 
   runPipeline = async (_, config) => {
