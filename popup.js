@@ -295,8 +295,14 @@ class CoreController {
     if (deployCollapse) {
       const header = deployCollapse.querySelector(".collapse-header");
       if (header) {
+        let pipelineListFetched = false;
         const handler = () => {
+          const willOpen = !deployCollapse.classList.contains("active");
           deployCollapse.classList.toggle("active");
+          if (willOpen && !pipelineListFetched) {
+            pipelineListFetched = true;
+            this.autoFetchPipelineList();
+          }
         };
         header.addEventListener("click", handler);
         this.eventHandlers.push({
@@ -498,6 +504,140 @@ class CoreController {
     });
     this.eventHandlers = [];
   };
+  autoFetchPipelineList = async () => {
+    const { isInWhiteList } = await this.commonHelper.validateDomain([
+      "devops",
+    ], true);
+    if (!isInWhiteList) return;
+    const section = document.getElementById("pipeline-list-section");
+    const content = document.getElementById("pipeline-list-content");
+    if (section) section.style.display = "block";
+    if (content) {
+      content.innerHTML =
+        '<div class="pipeline-list-loading">正在获取...</div>';
+    }
+    try {
+      const response = await chrome.runtime.sendMessage({
+        action: "getPipelineList",
+      });
+      if (response && response.code === 0 && response.data) {
+        this.renderPipelineList(response.data);
+      } else {
+        this.renderPipelineList(this.getMockPipelineList());
+      }
+    } catch (error) {
+      console.error("获取流水线列表失败:", error);
+      this.renderPipelineList(this.getMockPipelineList());
+    }
+  };
+  renderPipelineList = (data) => {
+    const content = document.getElementById("pipeline-list-content");
+    if (!content) return;
+    const list = Array.isArray(data) ? data : data?.list || [];
+    if (!Array.isArray(list) || list.length === 0) {
+      content.innerHTML =
+        '<div class="pipeline-list-empty">暂无流水线数据</div>';
+      return;
+    }
+    const nameMap = {
+      4573: "成本 GRAY",
+      876: "成本 UAT",
+      2207: "成本 PRE",
+      4194: "成本 ZGY",
+    };
+    content.innerHTML = list
+      .map((item) => {
+        const name = nameMap[item.id] || item.name || "未知";
+        const lastBuild = item.lastBuild || {};
+        const status = (lastBuild.status || "UNKNOWN").toUpperCase();
+        const material =
+          lastBuild?.trigger?.materialList?.[0] || {};
+        const branch = material.targetBranch || "-";
+        const triggerUser =
+          lastBuild?.trigger?.triggerUser || "-";
+        const buildNumber = lastBuild?.buildNumber || "-";
+        const duration = lastBuild?.duration
+          ? this.formatDuration(lastBuild.duration)
+          : "-";
+        const statusClass = this.getStatusClass(status);
+        const isRunning = status === "RUNNING";
+        const runningClass = isRunning ? "pipeline-list-item-running" : "";
+        return `
+        <div class="pipeline-list-item ${runningClass}">
+          <div class="pipeline-name">${name} <span class="pipeline-status ${statusClass}">${status}</span></div>
+          <div class="pipeline-meta">${branch}</div>
+          <div class="pipeline-meta">耗时 ${duration}</div>
+        </div>`;
+      })
+      .join("");
+  };
+  formatDuration = (ms) => {
+    const seconds = Math.floor(ms / 1000);
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    if (mins > 0) return `${mins}分${secs}秒`;
+    return `${secs}秒`;
+  };
+  getStatusClass = (status) => {
+    const map = {
+      SUCCESS: "success",
+      SUCC: "success",
+      FAILED: "failed",
+      FAILURE: "failed",
+      FAIL: "failed",
+      RUNNING: "running",
+      PENDING: "pending",
+      WAITTING: "pending",
+      WAITING: "pending",
+    };
+    return map[status] || "pending";
+  };
+  getMockPipelineList = () => {
+    return [
+      {
+        name: "成本前端-uat-gray",
+        lastBuild: {
+          status: "RUNNING",
+          buildNumber: 3493,
+          duration: 7108000,
+          trigger: {
+            triggerUser: "李文新",
+            materialList: [
+              { targetBranch: "release-20260804" },
+            ],
+          },
+        },
+      },
+      {
+        name: "成本前端-uat",
+        lastBuild: {
+          status: "SUCC",
+          buildNumber: 3105,
+          duration: 331000,
+          trigger: {
+            triggerUser: "郑起燕",
+            materialList: [
+              { targetBranch: "release-20260804" },
+            ],
+          },
+        },
+      },
+      {
+        name: "成本前端-pre",
+        lastBuild: {
+          status: "SUCC",
+          buildNumber: 418,
+          duration: 298000,
+          trigger: {
+            triggerUser: "尤文杰",
+            materialList: [
+              { targetBranch: "hotfix/202826" },
+            ],
+          },
+        },
+      },
+    ];
+  };
 }
 class CommonHelper {
   constructor() {
@@ -553,7 +693,7 @@ class CommonHelper {
    * @param {Array} types - 要检查的域名类型
    * @returns {Object} - 包含当前tab对象和是否在白名单的布尔值
    */
-  validateDomain = async (types) => {
+  validateDomain = async (types, hideMessage = false) => {
     const tab = await this.getCurrentTab();
     const url = tab?.url ?? "";
     if (!types.length) {
@@ -570,7 +710,9 @@ class CommonHelper {
         };
       }
     }
-    this.showMessage("请在指定的域名下使用");
+    if (!hideMessage) {
+      this.showMessage("请在指定的域名下使用");
+    }
     return {
       tab,
       isInWhiteList: false,

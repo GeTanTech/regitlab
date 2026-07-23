@@ -179,6 +179,46 @@ const handle = {
       utilsService.sendErrorResponse({ sendResponse });
     }
   },
+  // 获取流水线列表
+  getPipelineList: async (request, _, sendResponse) => {
+    try {
+      const url = `${utilsService.gitlabDomain}/osc/cip-economic/ipipe/pipeline/rest/v5/pipelines/getList`;
+      const body = JSON.stringify({
+        sort: "ALL",
+        viewType: "FIXED",
+        workspaceIdList: [4682],
+        groupIdList: [120,157,158,159,160,161,162,196,200,201,202,203,204,295,296,297,298,299,300,354,355,356,358,359,360,718,719,720,721,722,723,792,806,807,808,810,1061,1379],
+        draft: false,
+        limit: 200,
+        offset: 0,
+        orderType: "BUILD_DESC",
+        singal: {},
+      });
+      const referrer = `${utilsService.gitlabDomain}/osc/_ipipe/new-ipipe/pipelines/list?viewId=ALL&groupId=120`;
+      const result = await utilsService.commonFetch(url, {
+        method: "POST",
+        body,
+        referrer,
+        headers: {
+          accept: "application/json, text/plain, */*",
+          "content-type": "application/json",
+          xly_enterprise: "osc",
+          xly_project: "cip-economic",
+        },
+      });
+      const ids = [4573,876,2207,4194]
+      const reslist = result?.list?.filter(
+        (item) => ids.includes(item.id)
+      );
+      console.log(reslist)
+      utilsService.sendSuccessResponse({ sendResponse }, reslist);
+    } catch (error) {
+      utilsService.sendErrorResponse({
+        sendResponse,
+        message: "获取流水线列表失败",
+      });
+    }
+  },
   // 运行pipeline
   runPipeline: async (request, _, sendResponse) => {
     try {
