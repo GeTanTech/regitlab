@@ -514,7 +514,7 @@ class CoreController {
     if (section) section.style.display = "block";
     if (content) {
       content.innerHTML =
-        '<div class="pipeline-list-loading">正在获取...</div>';
+        '<div class="pipeline-list-loading"><div class="pipeline-loading-spinner"></div><span class="loading-text">正在获取...</span></div>';
     }
     try {
       const response = await chrome.runtime.sendMessage({
@@ -539,34 +539,48 @@ class CoreController {
         '<div class="pipeline-list-empty">暂无流水线数据</div>';
       return;
     }
-    const nameMap = {
-      4573: "成本 GRAY",
-      876: "成本 UAT",
-      2207: "成本 PRE",
-      4194: "成本 ZGY",
+    const pipelineMeta = {
+      4573: { name: "成本", envLabel: "GRAY", envKey: "gray" },
+      876: { name: "成本", envLabel: "UAT", envKey: "uat" },
+      2207: { name: "成本", envLabel: "PRE", envKey: "pre" },
+      4194: { name: "成本", envLabel: "ZGY", envKey: "zgy" },
+    };
+    const statusIcons = {
+      RUNNING: "🔄",
+      SUCC: "✅",
+      SUCCESS: "✅",
+      FAILED: "❌",
+      FAILURE: "❌",
+      FAIL: "❌",
+      PENDING: "⏳",
+      WAITTING: "⏳",
+      WAITING: "⏳",
     };
     content.innerHTML = list
       .map((item) => {
-        const name = nameMap[item.id] || item.name || "未知";
+        const meta = pipelineMeta[item.id] || {};
+        const name = meta.name || item.name || "未知";
+        const envLabel = meta.envLabel || "";
+        const envKey = meta.envKey || "";
         const lastBuild = item.lastBuild || {};
         const status = (lastBuild.status || "UNKNOWN").toUpperCase();
         const material =
           lastBuild?.trigger?.materialList?.[0] || {};
         const branch = material.targetBranch || "-";
-        const triggerUser =
-          lastBuild?.trigger?.triggerUser || "-";
-        const buildNumber = lastBuild?.buildNumber || "-";
-        const duration = lastBuild?.duration
-          ? this.formatDuration(lastBuild.duration)
-          : "-";
         const statusClass = this.getStatusClass(status);
+        const statusIcon = statusIcons[status] || "❓";
         const isRunning = status === "RUNNING";
+        const timeLabel = isRunning
+          ? `耗时 ${this.formatDuration(lastBuild.duration)}`
+          : `完成 ${this.formatTime(lastBuild.endTime || lastBuild.startTime)}`;
         const runningClass = isRunning ? "pipeline-list-item-running" : "";
         return `
-        <div class="pipeline-list-item ${runningClass}">
-          <div class="pipeline-name">${name} <span class="pipeline-status ${statusClass}">${status}</span></div>
-          <div class="pipeline-meta">${branch}</div>
-          <div class="pipeline-meta">耗时 ${duration}</div>
+        <div class="pipeline-list-item env-${envKey} ${runningClass}">
+          <div class="pipeline-name">
+            ${envLabel ? `<span class="pipeline-env-tag env-tag-${envKey}">${envLabel}</span>` : ""}<span style="flex:1">${name}</span><span class="pipeline-status ${statusClass}">${statusIcon} ${status}</span>
+          </div>
+          <div class="pipeline-meta"><span class="pipeline-branch-chip">${branch}</span></div>
+          <div class="pipeline-meta">${timeLabel}</div>
         </div>`;
       })
       .join("");
@@ -577,6 +591,15 @@ class CoreController {
     const secs = seconds % 60;
     if (mins > 0) return `${mins}分${secs}秒`;
     return `${secs}秒`;
+  };
+  formatTime = (timestamp) => {
+    if (!timestamp) return "-";
+    const d = new Date(timestamp);
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    const hours = String(d.getHours()).padStart(2, "0");
+    const mins = String(d.getMinutes()).padStart(2, "0");
+    return `${month}-${day} ${hours}:${mins}`;
   };
   getStatusClass = (status) => {
     const map = {

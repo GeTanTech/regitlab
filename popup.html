@@ -814,7 +814,12 @@
         border: 1px solid var(--border-color);
         font-size: 12px;
         transition: border-color 0.2s;
+        border-left: 3px solid var(--border-color);
       }
+      .pipeline-list-item.env-gray { border-left-color: var(--gray-color); background: rgba(99, 102, 241, 0.07); }
+      .pipeline-list-item.env-uat { border-left-color: var(--uat-color); background: rgba(245, 158, 11, 0.07); }
+      .pipeline-list-item.env-pre { border-left-color: var(--pre-color); background: rgba(16, 185, 129, 0.07); }
+      .pipeline-list-item.env-zgy { border-left-color: var(--zgy-color); background: rgba(139, 92, 246, 0.07); }
       .pipeline-list-item:hover {
         border-color: var(--primary);
       }
@@ -822,8 +827,29 @@
         font-weight: 600;
         color: var(--text-main);
         display: flex;
-        justify-content: space-between;
         align-items: center;
+        gap: 4px;
+      }
+      .pipeline-env-tag {
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 3px;
+        color: #fff;
+        letter-spacing: 0.05em;
+        flex-shrink: 0;
+      }
+      .env-tag-gray { background: var(--gray-color); }
+      .env-tag-uat { background: var(--uat-color); }
+      .env-tag-pre { background: var(--pre-color); }
+      .env-tag-zgy { background: var(--zgy-color); }
+      .pipeline-branch-chip {
+        font-size: 10px;
+        background: #e5e7eb;
+        color: var(--text-main);
+        padding: 1px 6px;
+        border-radius: 3px;
+        font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
       }
       .pipeline-list-item .pipeline-meta {
         font-size: 10px;
@@ -866,7 +892,27 @@
         background: #fef3c7;
         color: #92400e;
       }
-      .pipeline-list-loading,
+      .pipeline-list-loading {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 24px 20px;
+      }
+      .pipeline-loading-spinner {
+        width: 22px;
+        height: 22px;
+        border: 2.5px solid var(--border-color);
+        border-top-color: var(--primary);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      .pipeline-list-loading .loading-text {
+        font-size: 12px;
+        color: var(--text-sub);
+      }
       .pipeline-list-empty {
         text-align: center;
         color: var(--text-sub);

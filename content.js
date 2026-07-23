@@ -181,14 +181,15 @@ const handle = {
   },
   // 获取流水线列表
   getPipelineList: async (request, _, sendResponse) => {
+    // const groupIds = [120,157,158,159,160,161,162,196,200,201,202,203,204,295,296,297,298,299,300,354,355,356,358,359,360,718,719,720,721,722,723,792,806,807,808,810,1061,1379];
+    const groupIds = [721, 160, 358]
     try {
       const url = `${utilsService.gitlabDomain}/osc/cip-economic/ipipe/pipeline/rest/v5/pipelines/getList`;
       const body = JSON.stringify({
         sort: "ALL",
         viewType: "FIXED",
         workspaceIdList: [4682],
-        groupIdList: [120,157,158,159,160,161,162,196,200,201,202,203,204,295,296,297,298,299,300,354,355,356,358,359,360,718,719,720,721,722,723,792,806,807,808,810,1061,1379],
-        draft: false,
+        groupIdList: groupIds,
         limit: 200,
         offset: 0,
         orderType: "BUILD_DESC",
