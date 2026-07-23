@@ -210,8 +210,9 @@ const handle = {
       const ids = [4573,876,2207,4194]
       const reslist = result?.list?.filter(
         (item) => ids.includes(item.id)
+      ).sort(
+        (a, b) => ids.indexOf(a.id) - ids.indexOf(b.id)
       );
-      console.log(reslist)
       utilsService.sendSuccessResponse({ sendResponse }, reslist);
     } catch (error) {
       utilsService.sendErrorResponse({

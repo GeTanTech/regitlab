@@ -523,11 +523,11 @@ class CoreController {
       if (response && response.code === 0 && response.data) {
         this.renderPipelineList(response.data);
       } else {
-        this.renderPipelineList(this.getMockPipelineList());
+        this.renderPipelineListError();
       }
     } catch (error) {
       console.error("获取流水线列表失败:", error);
-      this.renderPipelineList(this.getMockPipelineList());
+      this.renderPipelineListError();
     }
   };
   renderPipelineList = (data) => {
@@ -577,7 +577,7 @@ class CoreController {
         return `
         <div class="pipeline-list-item env-${envKey} ${runningClass}">
           <div class="pipeline-name">
-            ${envLabel ? `<span class="pipeline-env-tag env-tag-${envKey}">${envLabel}</span>` : ""}<span style="flex:1">${name}</span><span class="pipeline-status ${statusClass}">${statusIcon} ${status}</span>
+            <span style="flex:1">${name}</span>${envLabel ? `<span class="pipeline-env-tag env-tag-${envKey}">${envLabel}</span>` : ""}<span class="pipeline-status ${statusClass}">${statusIcon}</span>
           </div>
           <div class="pipeline-meta"><span class="pipeline-branch-chip">${branch}</span></div>
           <div class="pipeline-meta">${timeLabel}</div>
@@ -615,51 +615,12 @@ class CoreController {
     };
     return map[status] || "pending";
   };
-  getMockPipelineList = () => {
-    return [
-      {
-        name: "成本前端-uat-gray",
-        lastBuild: {
-          status: "RUNNING",
-          buildNumber: 3493,
-          duration: 7108000,
-          trigger: {
-            triggerUser: "李文新",
-            materialList: [
-              { targetBranch: "release-20260804" },
-            ],
-          },
-        },
-      },
-      {
-        name: "成本前端-uat",
-        lastBuild: {
-          status: "SUCC",
-          buildNumber: 3105,
-          duration: 331000,
-          trigger: {
-            triggerUser: "郑起燕",
-            materialList: [
-              { targetBranch: "release-20260804" },
-            ],
-          },
-        },
-      },
-      {
-        name: "成本前端-pre",
-        lastBuild: {
-          status: "SUCC",
-          buildNumber: 418,
-          duration: 298000,
-          trigger: {
-            triggerUser: "尤文杰",
-            materialList: [
-              { targetBranch: "hotfix/202826" },
-            ],
-          },
-        },
-      },
-    ];
+  renderPipelineListError = () => {
+    const content = document.getElementById("pipeline-list-content");
+    if (content) {
+      content.innerHTML =
+        '<div class="pipeline-list-empty">获取失败，请刷新页面重试</div>';
+    }
   };
 }
 class CommonHelper {
